@@ -108,7 +108,7 @@ Road Map
 |             [1.0](https://github.com/Corvusoft/restless/milestones/1.0)              |           HTTP 1.1 Compliance           |  development |
 |             [1.0](https://github.com/Corvusoft/restless/milestones/1.0)              |           Secure Socket Layer           |  development |
 |             [1.0](https://github.com/Corvusoft/restless/milestones/4.5)              |            API Documentation            |  development |
-|             [1.5](https://github.com/Corvusoft/restless/milestones/1.0)              |    Bind Service to specific Address     |    pending   |
+|             [1.5](https://github.com/Corvusoft/restless/milestones/4.5)              |        Chunked Transfer-Encoding        |    pending   |
 |             [1.5](https://github.com/Corvusoft/restless/milestones/4.5)              |               Web Sockets               |    pending   |
 |             [2.0](https://github.com/Corvusoft/restless/milestones/4.5)              |            Server-Side Events           |    pending   |
 |             [2.5](https://github.com/Corvusoft/restless/milestones/5.0)              |      Client-side SSL certificates       |    pending   |
