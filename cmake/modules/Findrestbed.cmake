@@ -43,6 +43,8 @@ if ( restbed_PROJECT )
         ${restbed_PROJECT}/source/corvusoft/restbed/ssl_settings.hpp
     )
 
+    install( FILES ${RESTBED_ARTIFACTS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/corvusoft/restbed" )
+
     message( STATUS "${Green}Found Restbed include at: ${restbed_PROJECT}${Reset}" )
 else ( )
     message( FATAL_ERROR "${Red}Failed to locate Restbed dependency.${Reset}" )
