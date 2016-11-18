@@ -29,6 +29,8 @@ if ( restbed_PROJECT )
         ${restbed_PROJECT}/source/corvusoft/restbed/detail/ssl_settings_impl.hpp
         ${restbed_PROJECT}/source/corvusoft/restbed/detail/socket_impl.hpp
         ${restbed_PROJECT}/source/corvusoft/restbed/detail/socket_impl.cpp
+        ${restbed_PROJECT}/source/corvusoft/restbed/detail/http_impl.hpp
+        ${restbed_PROJECT}/source/corvusoft/restbed/detail/http_impl.cpp
      )
 
      set( RESTBED_ARTIFACTS

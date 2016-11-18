@@ -44,46 +44,28 @@ namespace restless
             //Definitions
             
             //Constructors
-            Session( void );
-            
-            Session( const std::shared_ptr< const Settings >& settings );
+            Session( const Uri& uri, const std::shared_ptr< const Settings >& settings = nullptr );
             
             virtual ~Session( void );
             
             //Functionality
+            void wait( void );
+            
             void close( void );
             
             bool is_open( void ) const;
             
             bool is_closed( void ) const;
             
-            void yield( const Bytes& body );
+            Bytes fetch( const std::size_t length, const std::function< void ( const std::shared_ptr< Session > ) >& callback = nullptr );
             
-            void yield( const std::string& body );
-            
-            void yield( const Bytes& body, const std::function< void ( const std::shared_ptr< Session > ) >& callback );
-            
-            void yield( const std::string& body, const std::function< void ( const std::shared_ptr< Session > ) >& callback );
-            
-            void fetch( const std::size_t length );
-            
-            void fetch( const std::string& delimiter );
-            
-            void fetch( const std::size_t length, const std::function< void ( const std::shared_ptr< Session > ) >& callback );
-            
-            void fetch( const std::string& delimiter, const std::function< void ( const std::shared_ptr< Session > ) >& callback );
+            Bytes fetch( const std::string& delimiter, const std::function< void ( const std::shared_ptr< Session > ) >& callback = nullptr );
             
             const std::shared_ptr< Response > send( const std::shared_ptr< Request >& request, const std::function< void ( const std::shared_ptr< Session > ) >& response_handler = nullptr );
             
-            const std::shared_ptr< Response > send( const std::shared_ptr< Request >& request, const std::function< void ( const std::shared_ptr< Session > ) >& upload_handler, const std::function< void ( const std::shared_ptr< Session > ) >& response_handler );
-            
-            void wait( const std::function< void ( const std::shared_ptr< Session > ) >& callback = nullptr );
+            const std::shared_ptr< Response > send( const std::shared_ptr< Request >& request, const std::function< std::size_t ( const std::shared_ptr< Session > ) >& upload_handler, const std::function< void ( const std::shared_ptr< Session > ) >& response_handler = nullptr );
             
             //Getters
-            const std::shared_ptr< Request > get_request( void ) const;
-            
-            const std::shared_ptr< Response > get_response( void ) const;
-            
             const std::multimap< std::string, std::string > get_headers( void ) const;
             
             //Setters
@@ -120,6 +102,8 @@ namespace restless
             //Definitions
             
             //Constructors
+            Session( void ) = delete;
+            
             Session( const Session& original ) = delete;
             
             //Functionality
