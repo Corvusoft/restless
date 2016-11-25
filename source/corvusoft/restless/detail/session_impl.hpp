@@ -69,15 +69,15 @@ namespace restless
 #ifdef BUILD_SSL
                 void ssl_socket_setup( void );
 #endif
-                Bytes fetch( const std::size_t length );
+                Bytes fetch( const std::size_t length, const std::function< void ( const Bytes, const std::error_code ) >& completion_handler );
                 
-                Bytes fetch( const std::string& delimiter );
+                Bytes fetch( const std::string& delimiter, const std::function< void ( const Bytes, const std::error_code ) >& completion_handler );
                 
                 std::shared_ptr< Response > parse( const Bytes& response );
                 
-                Bytes sync( const Bytes& data, std::error_code error );
+                Bytes sync( const Bytes& data, const std::function< Bytes ( void ) >& upload_handler, std::error_code error );
                 
-                void async( const Bytes& data, const std::function< void ( const std::error_code&, size_t ) >& callback );
+                void async( const Bytes& data, const std::function< Bytes ( void ) >& upload_handler, const std::function< void ( const std::shared_ptr< Session >, const std::shared_ptr< Request >, const std::shared_ptr< Response > ) >& response_handler );
                 
                 std::error_code connect( const std::function< void ( const std::error_code& ) >& callback = nullptr );
                 

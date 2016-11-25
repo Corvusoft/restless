@@ -177,7 +177,7 @@ namespace restless
         }
 #endif
         
-        Bytes SessionImpl::fetch( const size_t length )
+        Bytes SessionImpl::fetch( const size_t length, const function< void ( const Bytes, const error_code ) >& completion_handler )
         {
             if ( length == 0 or
                     ( m_socket == nullptr
@@ -215,7 +215,7 @@ namespace restless
             return data;
         }
         
-        Bytes SessionImpl::fetch( const string& )
+        Bytes SessionImpl::fetch( const string& delimiter, const function< void ( const Bytes, const error_code ) >& completion_handler )
         {
             return { };
         }
@@ -263,7 +263,7 @@ namespace restless
             return response;
         }
         
-        Bytes SessionImpl::sync( const Bytes& data, error_code error )
+        Bytes SessionImpl::sync( const Bytes& data, const function< Bytes ( void ) >& upload_handler, error_code error )
         {
             socket_setup( );
             timeout_setup( );
@@ -324,7 +324,7 @@ namespace restless
             return buffer;
         }
         
-        void SessionImpl::async( const Bytes&, const function< void ( const error_code&, size_t ) >& )
+        void SessionImpl::async( const Bytes&, const function< Bytes ( void ) >& upload_handler, const function< void ( const shared_ptr< Session >, const shared_ptr< Request >, const shared_ptr< Response > ) >& response_handler )
         {
         
         }

@@ -62,44 +62,42 @@ namespace restless
         return not m_pimpl->m_is_open;
     }
     
-    Bytes Session::fetch( const size_t length, const function< void ( const shared_ptr< Session > ) >& )
+    Bytes Session::fetch( const size_t length, const function< void ( const Bytes, const error_code ) >& completion_handler )
     {
-        return m_pimpl->fetch( length );
+        return m_pimpl->fetch( length, completion_handler );
     }
     
-    Bytes Session::fetch( const string& delimiter, const function< void ( const shared_ptr< Session > ) >& )
+    Bytes Session::fetch( const string& delimiter, const function< void ( const Bytes, const error_code ) >& completion_handler )
     {
-        return m_pimpl->fetch( delimiter );
+        return m_pimpl->fetch( delimiter, completion_handler );
     }
     
-    const shared_ptr< Response > Session::send( const shared_ptr< Request >& request, const function< void ( const shared_ptr< Session > ) >& response_handler )
+    const shared_ptr< Response > Session::send( const shared_ptr< Request >& request, const function< Bytes ( void ) >& upload_handler )
     {
         auto data = HttpImpl::to_bytes( request );
         
-        if ( response_handler == nullptr )
-        {
-            error_code error;
-            auto response = m_pimpl->sync( data, error );
-            
-            if ( error )
-            {
-                close( );
-                return m_pimpl->create_error_response( error );
-            }
-            
-            return m_pimpl->parse( response );
-        }
-        else
-        {
+        error_code error;
+        auto response = m_pimpl->sync( data, upload_handler, error );
         
+        if ( error )
+        {
+            close( );
+            return m_pimpl->create_error_response( error );
         }
         
-        return nullptr;
+        return m_pimpl->parse( response );
     }
     
-    const shared_ptr< Response > Session::send( const shared_ptr< Request >&, const function< size_t ( const shared_ptr< Session > ) >&, const function< void ( const shared_ptr< Session > ) >& )
+    void Session::send( const shared_ptr< Request >& request, const function< void ( const shared_ptr< Session >, const shared_ptr< Request >, const shared_ptr< Response > ) >& completion_handler )
     {
-        return nullptr;
+        send( request, nullptr, completion_handler );
+    }
+    
+    void Session::send( const shared_ptr< Request >& request, const function< Bytes ( void ) >& upload_handler, const function< void ( const shared_ptr< Session >, const shared_ptr< Request >, const shared_ptr< Response > ) >& completion_handler )
+    {
+        // auto data = HttpImpl::to_bytes( request );
+        
+        //m_pimpl->async( data, upload_handler, completion_handler );
     }
     
     const multimap< string, string > Session::get_headers( void ) const

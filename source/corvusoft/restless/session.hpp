@@ -11,6 +11,7 @@
 #include <memory>
 #include <cstddef>
 #include <functional>
+#include <system_error>
 
 //Project Includes
 #include <corvusoft/restless/uri.hpp>
@@ -57,13 +58,16 @@ namespace restless
             
             bool is_closed( void ) const;
             
-            Bytes fetch( const std::size_t length, const std::function< void ( const std::shared_ptr< Session > ) >& callback = nullptr );
+            Bytes fetch( const std::size_t length, const std::function< void ( const Bytes, const std::error_code ) >& completion_handler = nullptr );
             
-            Bytes fetch( const std::string& delimiter, const std::function< void ( const std::shared_ptr< Session > ) >& callback = nullptr );
+            Bytes fetch( const std::string& delimiter, const std::function< void ( const Bytes, const std::error_code ) >& completion_handler = nullptr );
             
-            const std::shared_ptr< Response > send( const std::shared_ptr< Request >& request, const std::function< void ( const std::shared_ptr< Session > ) >& response_handler = nullptr );
+            const std::shared_ptr< Response > send( const std::shared_ptr< Request >& request, const std::function< Bytes ( void ) >& upload_handler = nullptr );
             
-            const std::shared_ptr< Response > send( const std::shared_ptr< Request >& request, const std::function< std::size_t ( const std::shared_ptr< Session > ) >& upload_handler, const std::function< void ( const std::shared_ptr< Session > ) >& response_handler = nullptr );
+            void send( const std::shared_ptr< Request >& request, const std::function< void ( const std::shared_ptr< Session >, const std::shared_ptr< Request >, const std::shared_ptr< Response > ) >& response_handler );
+            
+            void send( const std::shared_ptr< Request >& request, const std::function< Bytes ( void ) >& upload_handler, const std::function< void ( const std::shared_ptr< Session >, const std::shared_ptr< Request >, const std::shared_ptr< Response > ) >& response_handler );
+            
             
             //Getters
             const std::multimap< std::string, std::string > get_headers( void ) const;

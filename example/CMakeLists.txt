@@ -12,11 +12,11 @@ set( EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/example" )
 #
 # Build
 #
-add_executable( synchronous_request synchronous_request/source/example.cpp )
-target_link_libraries( synchronous_request ${CMAKE_PROJECT_NAME} )
+add_executable( synchronous_http synchronous_http/source/example.cpp )
+target_link_libraries( synchronous_http ${CMAKE_PROJECT_NAME} )
 
-add_executable( asynchronous_request asynchronous_request/source/example.cpp )
-target_link_libraries( asynchronous_request ${CMAKE_PROJECT_NAME} )
+add_executable( asynchronous_http asynchronous_http/source/example.cpp )
+target_link_libraries( asynchronous_http ${CMAKE_PROJECT_NAME} )
 
 #
 # Install
