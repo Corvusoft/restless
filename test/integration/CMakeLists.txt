@@ -1,8 +1,6 @@
-# Copyright 2013-2016, Corvusoft Ltd, All Rights Reserved.
+cmake_minimum_required( VERSION 3.1.0 FATAL_ERROR )
 
-project( "integration test suite" )
-
-cmake_minimum_required( VERSION 2.8.10 )
+project( "unit test suite" VERSION 2.0.0 LANGUAGES CXX )
 
 #
 # Configuration

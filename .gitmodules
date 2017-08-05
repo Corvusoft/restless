@@ -1,6 +1,3 @@
-[submodule "dependency/restbed"]
-	path = dependency/restbed
-	url = https://github.com/Corvusoft/restbed
-[submodule "dependency/catch"]
-	path = dependency/catch
-	url = https://github.com/Corvusoft/catch-dependency
+[submodule "dependency/protocol"]
+	path = dependency/protocol
+	url = https://github.com/corvusoft/protocol

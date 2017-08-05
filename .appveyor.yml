@@ -1,0 +1,24 @@
+version: 2.0.{build}
+image: Visual Studio 2015
+configuration: Release
+platform: x64
+clone_folder: C:\projects\restless
+init:
+- cmd: '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"'
+install:
+- cmd: git submodule update --init --recursive
+build_script:
+- cmd: >-
+    mkdir c:\projects\restless\build
+
+    cd c:\projects\restless\build
+
+    cmake -G "Visual Studio 14 2015" ..
+
+    cmake --build . --target ALL_BUILD --config Release
+test_script:
+- cmd: >-
+    cd c:\projects\restless\build
+
+    ctest
+deploy: off

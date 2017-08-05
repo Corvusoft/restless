@@ -1,0 +1,12 @@
+find_library( network_STATIC_LIBRARY libnetwork.a HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/distribution/library" )
+find_library( network_SHARED_LIBRARY NAMES libnetwork.so libnetwork.dylib HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/distribution/library" )
+find_path( network_INCLUDE "corvusoft/network/adaptor.hpp" HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/distribution/include" )
+
+if ( network_INCLUDE AND network_STATIC_LIBRARY AND network_SHARED_LIBRARY )
+    set( NETWORK_FOUND TRUE )
+    message( STATUS "Located Network include at: ${network_INCLUDE}" )
+    message( STATUS "Located Network static library at: ${network_STATIC_LIBRARY}" )
+    message( STATUS "Located Network shared library at: ${network_SHARED_LIBRARY}" )
+else ( )
+    message( FATAL_ERROR "Failed to locate Network dependency, try again after performing: mkdir build; cd build; cmake ..; make install" )
+endif ( )

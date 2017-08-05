@@ -2,8 +2,8 @@
  * Copyright 2013-2017, Corvusoft Ltd, All Rights Reserved.
  */
 
-#ifndef _CORVUSOFT_RESTLESS_DETAIL_SESSION_IMPL_H
-#define _CORVUSOFT_RESTLESS_DETAIL_SESSION_IMPL_H 1
+#ifndef _CORVUSOFT_RESTLESS_DETAIL_FACTORY_IMPL_H
+#define _CORVUSOFT_RESTLESS_DETAIL_FACTORY_IMPL_H 1
 
 //System Includes
 
@@ -29,7 +29,7 @@ namespace corvusoft
         {
             //Forward Declarations
             
-            struct SessionImpl
+            struct FactoryImpl
             {
 
             };
@@ -37,4 +37,4 @@ namespace corvusoft
     }
 }
 
-#endif  /* _CORVUSOFT_RESTLESS_DETAIL_SESSION_IMPL_H */
+#endif  /* _CORVUSOFT_RESTLESS_DETAIL_FACTORY_IMPL_H */
