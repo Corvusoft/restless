@@ -45,11 +45,13 @@ namespace corvusoft
     namespace restless
     {
         //Forward Declarations
+        class Request;
+        class Response;
         class Settings;
 
         namespace detail
         {
-            class SessionImpl;
+            struct SessionImpl;
         }
         
         class Session
@@ -89,7 +91,7 @@ namespace corvusoft
                 
                 void put( const std::shared_ptr< Request > request,
                           const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
-                          const std::function< std::error_code ( Bytes& ) > download_handler = nullptr );
+                          const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
 
                 void post( const std::shared_ptr< Request > request,
                            const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
@@ -226,8 +228,6 @@ namespace corvusoft
                 //Definitions
                 
                 //Constructors
-                Session( void ) = delete;
-                
                 Session( const Session& original ) = delete;
                 
                 //Functionality

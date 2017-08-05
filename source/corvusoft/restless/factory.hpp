@@ -33,6 +33,11 @@ namespace corvusoft
         class Request;
         class Response;
 
+        namespace detail
+        {
+            struct FactoryImpl;
+        }
+
         class Factory
         {
             public:
@@ -42,6 +47,8 @@ namespace corvusoft
                 
                 //Constructors
                 Factory( const std::shared_ptr< core::RunLoop > runloop );
+
+                virtual ~Factory( void );
                 
                 //Functionality
                 std::shared_ptr< Session > make_session( void );
@@ -84,8 +91,6 @@ namespace corvusoft
                 Factory( void ) = delete;
                 
                 Factory( const Factory& ) = delete;
-                
-                virtual ~Factory( void ) = delete;
                 
                 //Functionality
                 

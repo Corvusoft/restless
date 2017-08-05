@@ -52,32 +52,32 @@ namespace corvusoft
         
         }
         
-        string Response::get_status_message( void ) const
+        string Response::get_status_message( const function< string ( const string& ) >& transform ) const
         {
-        
+            
         }
         
-        string Response::get_protocol( void ) const
+        string Response::get_protocol( const function< string ( const string& ) >& transform ) const
         {
-        
+            
         }
         
-        Bytes Response::get_body( void ) const
+        Bytes Response::get_body( const function< string ( const Bytes& ) >& transform ) const
         {
-        
+            
         }
         
-        string Response::get_header( const string& name ) const
+        string Response::get_header( const string& name, const string& default_value ) const
         {
         
         }
 
-        string Response::get_header( const string& name, const function< string ( const Bytes& ) >& transform ) const
+        string Response::get_header( const string& name, const function< string ( const string& ) >& transform ) const
         {
         
         }
         
-        multimap< const string, const string > Response::get_headers( void ) const
+        multimap< const string, const string > Response::get_headers( const string& name ) const
         {
         
         }

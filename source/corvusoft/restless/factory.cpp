@@ -26,7 +26,7 @@ using corvusoft::core::RunLoop;
 
 namespace corvusoft
 {
-    namespace restbed
+    namespace restless
     {
         Factory::Factory( const shared_ptr< RunLoop > runloop ) : m_pimpl( new FactoryImpl )
         {
