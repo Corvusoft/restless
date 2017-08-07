@@ -40,7 +40,7 @@ namespace corvusoft
         {
             return;
         }
-
+        
         bool Response::has_header( const string& name ) const
         {
             return has( "header:" + name );
@@ -50,16 +50,40 @@ namespace corvusoft
         {
             static const auto default_value = 0.0;
             if ( not has( "version" ) ) return default_value;
-
-            try { return stod( make_string( get( "version" ) ) ); }
-            catch ( const out_of_range& oor   ) { return default_value; }
-            catch ( const invalid_argument ia ) { return default_value; }
+            
+            try
+            {
+                return stod( make_string( get( "version" ) ) );
+            }
+            catch ( const out_of_range& oor   )
+            {
+                return default_value;
+            }
+            catch ( const invalid_argument ia )
+            {
+                return default_value;
+            }
             return default_value;
         }
         
         int Response::get_status_code( void ) const
         {
-            return 0;
+            static const auto default_value = 0;
+            if ( not has( "status:code" ) ) return default_value;
+            
+            try
+            {
+                return stod( make_string( get( "status:code" ) ) );
+            }
+            catch ( const out_of_range& oor   )
+            {
+                return default_value;
+            }
+            catch ( const invalid_argument ia )
+            {
+                return default_value;
+            }
+            return default_value;
         }
         
         string Response::get_status_message( const function< string ( const string& ) >& transform ) const
@@ -69,19 +93,19 @@ namespace corvusoft
         
         string Response::get_protocol( const function< string ( const string& ) >& transform ) const
         {
-            
+        
         }
         
         Bytes Response::get_body( const function< string ( const Bytes& ) >& transform ) const
         {
-            
+        
         }
         
         string Response::get_header( const string& name, const string& default_value ) const
         {
         
         }
-
+        
         string Response::get_header( const string& name, const function< string ( const string& ) >& transform ) const
         {
         
