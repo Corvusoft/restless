@@ -30,8 +30,8 @@ TEST_CASE( "Set-up response instance." )
     const auto response = make_shared< Response >( );
     REQUIRE( response->get_version( ) == 0.0 );
     REQUIRE( response->get_status_code( ) == 0 );
-    REQUIRE( response->get_status_message( ) == "" );
-    REQUIRE( response->get_protocol( ) == "" );
+    REQUIRE( response->get_status_message( ).empty( ) );
+    REQUIRE( response->get_protocol( ).empty( ) );
     REQUIRE( response->get_body( ).empty( ) );
     REQUIRE( response->get_headers( ).empty( ) );
 }
@@ -69,6 +69,7 @@ TEST_CASE( "Modify response instance." )
     REQUIRE( response->get_header( "Content-Type" ) == "application/yaml" );
     REQUIRE( response->get_header( "Content-Length", 30 ) == 30 );
     REQUIRE( response->get_header( "KEY", "1234" ) == "1234" );
+    REQUIRE( response->get_header( "Content-Type", "1234" ) == "application/yaml" );
     REQUIRE( response->get_header( "LINK" ) == "" );
     
     auto values = multimap< string, string >

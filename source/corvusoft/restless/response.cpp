@@ -110,7 +110,8 @@ namespace corvusoft
         
         string Response::get_header( const string& name, const string& default_value ) const
         {
-            return ( has( name ) ) ? make_string( get( name ) ) : default_value;
+            const auto tag = "header:" + name;
+            return ( has( tag ) ) ? make_string( get( tag ) ) : default_value;
         }
         
         string Response::get_header( const string& name, const function< string ( const string& ) >& transform ) const
@@ -170,8 +171,9 @@ namespace corvusoft
         
         void Response::set_header( const string& name, const string& value )
         {
-            erase( "header:" + name );
-            set( "header:" + name, make_bytes( value ) );
+            const auto tag = "header:" + name;
+            erase( tag );
+            set( tag, make_bytes( value ) );
         }
         
         void Response::set_headers( const multimap< string, string >& values )
