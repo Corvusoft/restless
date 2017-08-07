@@ -21,9 +21,9 @@ add_executable( response_unit_test_suite ${SOURCE_DIR}/response.cpp )
 target_link_libraries( response_unit_test_suite ${STATIC_LIBRARY_NAME} )
 add_test( response_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/response_unit_test_suite )
 
-#add_executable( session_unit_test_suite ${SOURCE_DIR}/session.cpp )
-#target_link_libraries( session_unit_test_suite ${STATIC_LIBRARY_NAME} )
-#add_test( session_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_unit_test_suite )
+add_executable( session_unit_test_suite ${SOURCE_DIR}/session.cpp )
+target_link_libraries( session_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_unit_test_suite )
 
 add_executable( settings_unit_test_suite ${SOURCE_DIR}/settings.cpp )
 target_link_libraries( settings_unit_test_suite ${STATIC_LIBRARY_NAME} )
