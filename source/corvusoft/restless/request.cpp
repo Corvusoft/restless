@@ -37,50 +37,49 @@ namespace corvusoft
         
         double Request::get_version( void ) const
         {
-
+        
         }
         
-        Bytes Request::get_body( const function< string ( const core::Bytes& ) >& transform ) const
+        Bytes Request::get_body( void ) const
         {
-
+        
         }
         
-        string Request::get_path( const function< string ( const string& ) >& transform ) const
+        string Request::get_path( void ) const
         {
-
+        
         }
         
-        string Request::get_method( const function< string ( const string& ) >& transform ) const
+        string Request::get_method( void ) const
         {
-
+        
         }
         
-        string Request::get_protocol( const function< string ( const string& ) >& transform ) const
+        string Request::get_protocol( void ) const
         {
-             //validate against protocols wehn sending.
+            //validate against protocols wehn sending.
         }
         
-        string Request::get_header( const string& name, const string& default_value ) const
+        string Request::get_header( const string& name ) const
         {
-
+        
         }
         
-        multimap< string, string > Request::get_headers( const string& name ) const
+        multimap< string, string > Request::get_headers( void ) const
         {
-
+        
         }
         
-        string Request::get_query_parameter( const string& name, const string& default_value ) const
+        string Request::get_query_parameter( const string& name ) const
         {
-
+        
         }
-
-        multimap< string, string > Request::get_query_parameters( const string& name ) const
+        
+        multimap< string, string > Request::get_query_parameters( void ) const
         {
-
+        
         }
-
-
+        
         void Request::set_version( const double value )
         {
         
@@ -120,15 +119,15 @@ namespace corvusoft
         {
         
         }
-
+        
         void set_query_parameter( const string& name, const string& value )
         {
-
+        
         }
-
+        
         void set_query_parameters( const multimap< string, string >& values )
         {
-
+        
         }
     }
 }

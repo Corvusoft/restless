@@ -39,37 +39,37 @@ namespace corvusoft
                 
                 //Constructors
                 Request( void );
-
+                
                 virtual ~Request( void );
                 
                 //Functionality
-
+                
                 //Getters
                 //core::URI get_uri( void ) const;
-
+                
                 double get_version( void ) const;
                 
-                core::Bytes get_body( const std::function< std::string ( const core::Bytes& ) >& transform = nullptr ) const;
+                core::Bytes get_body( void ) const;
                 
-                std::string get_path( const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
+                std::string get_path( void ) const;
                 
-                std::string get_method( const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
+                std::string get_method( void ) const;
                 
-                std::string get_protocol( const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
+                std::string get_protocol( void ) const;
                 
-                std::string get_header( const std::string& name, const std::string& default_value ) const;
+                std::string get_header( const std::string& name ) const;
                 
-                std::multimap< std::string, std::string > get_headers( const std::string& name = "" ) const;
+                std::multimap< std::string, std::string > get_headers( void ) const;
                 
-                std::string get_query_parameter( const std::string& name, const std::string& default_value ) const;
-
-                std::multimap< std::string, std::string > get_query_parameters( const std::string& name = "" ) const;
-
+                std::string get_query_parameter( const std::string& name ) const;
+                
+                std::multimap< std::string, std::string > get_query_parameters( void ) const;
+                
                 //Setters
                 //void set_uri( const core::URI& value );
-
+                
                 void set_version( const double value );
-
+                
                 void set_body( const core::Bytes& value );
                 
                 void set_body( const std::string& value );
@@ -83,9 +83,9 @@ namespace corvusoft
                 void set_header( const std::string& name, const std::string& value );
                 
                 void set_headers( const std::multimap< std::string, std::string >& values );
-
+                
                 void set_query_parameter( const std::string& name, const std::string& value );
-
+                
                 void set_query_parameters( const std::multimap< std::string, std::string >& values );
                 
                 //Operators

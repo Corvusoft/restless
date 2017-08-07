@@ -8,6 +8,7 @@
 //System Includes
 #include <map>
 #include <string>
+#include <sstream>
 #include <functional>
 #include <type_traits>
 
@@ -48,19 +49,24 @@ namespace corvusoft
                 
                 //Getters
                 double get_version( void ) const;
-
+                
                 int get_status_code( void ) const;
-
-                std::string get_status_message( const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;                
+                
+                std::string get_status_message( const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
                 
                 std::string get_protocol( const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
                 
-                core::Bytes get_body( const std::function< std::string ( const core::Bytes& ) >& transform = nullptr ) const;
-
+                core::Bytes get_body( const std::function< core::Bytes ( const core::Bytes& ) >& transform = nullptr ) const;
+                
                 template< typename Type, typename std::enable_if< std::is_arithmetic< Type >::value, Type >::type = 0 >
                 Type get_header( const std::string& name, const Type default_value ) const
                 {
-                    return default_value;
+                    std::istringstream stream( core::make_string( get( name ) ) );
+                    
+                    Type parameter;
+                    stream >> parameter;
+                    
+                    return ( stream.fail( ) ) ? default_value : parameter;
                 }
                 
                 std::string get_header( const std::string& name, const std::string& default_value ) const;
