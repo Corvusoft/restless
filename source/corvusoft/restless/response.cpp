@@ -51,16 +51,13 @@ namespace corvusoft
             static const auto default_value = 0.0;
             if ( not has( "version" ) ) return default_value;
             
-            try
-            {
+            try {
                 return stod( make_string( get( "version" ) ) );
             }
-            catch ( const out_of_range& oor   )
-            {
+            catch ( const out_of_range& oor   ) {
                 return default_value;
             }
-            catch ( const invalid_argument ia )
-            {
+            catch ( const invalid_argument ia ) {
                 return default_value;
             }
             return default_value;

@@ -1,4 +1,3 @@
-style=allman
 indent=spaces=4
 indent-classes
 indent-switches
@@ -10,6 +9,7 @@ pad-oper
 pad-paren-in
 pad-header
 fill-empty-lines
+break-closing-brackets
 convert-tabs
 align-pointer=type
 quiet
