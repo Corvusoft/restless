@@ -9,7 +9,6 @@ pad-oper
 pad-paren-in
 pad-header
 fill-empty-lines
-break-closing-brackets
 convert-tabs
 align-pointer=type
 quiet
