@@ -10,11 +10,11 @@
 #include "corvusoft/restless/request.hpp"
 #include "corvusoft/restless/response.hpp"
 #include "corvusoft/restless/settings.hpp"
-#include "corvusoft/restless/log_level.hpp"
 #include "corvusoft/restless/detail/session_impl.hpp"
 
 //External Includes
 #include <corvusoft/core/run_loop.hpp>
+#include <corvusoft/core/log_level.hpp>
 #include <corvusoft/protocol/http.hpp>
 #include <corvusoft/protocol/protocol.hpp>
 #include <corvusoft/network/adaptor.hpp>
