@@ -39,7 +39,8 @@ namespace corvusoft
         
         milliseconds Settings::get_connection_timeout( void ) const
         {
-            return milliseconds( get( "connection:timeout", 10000 ) );
+            static const auto default_value = milliseconds( 10000 ).count( );
+            return milliseconds( get( "connection:timeout", default_value ) );
         }
         
         void Settings::set_bind_address( const string& value )

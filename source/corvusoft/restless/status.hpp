@@ -89,7 +89,7 @@ namespace corvusoft
             NETWORK_AUTHENTICATION_REQUIRED = 511
         };
         
-        static std::map< int, std::string > status_message
+        static std::map< int, std::string > status
         {
             { CONTINUE,                        "Continue"                        },
             { SWITCHING_PROTOCOLS,             "Switching Protocols"             },
@@ -153,37 +153,41 @@ namespace corvusoft
         
         inline bool is_informational( const int status_code )
         {
-            return ( status_code > 100 and status_code < 199 );
+            return ( status_code >= 100 and status_code <= 199 );
         }
         
         inline bool is_success( const int status_code )
         {
-            return ( status_code > 200 and status_code < 299 );
+            return ( status_code >= 200 and status_code <= 299 );
         }
         
         inline bool is_redirection( const int status_code )
         {
-            return ( status_code > 300 and status_code < 399 );
+            return ( status_code >= 300 and status_code <= 399 );
         }
         
         inline bool is_client_error( const int status_code )
         {
-            return ( status_code > 400 and status_code < 499 );
+            return ( status_code >= 400 and status_code <= 499 );
         }
         
         inline bool is_server_error( const int status_code )
         {
-            return ( status_code > 500 and status_code < 599 );
+            return ( status_code >= 500 and status_code <= 599 );
         }
         
         inline int make_status_code( const std::string& status_message )
         {
-            //return ( status_message.count( status_code ) ) ? status_message.at( status_code ) : "";
+            for ( const auto& entry : status )
+                if ( entry.second == status_message )
+                    return entry.first;
+
+            return 0;
         }
         
         inline std::string make_status_message( const int status_code )
         {
-            return ( status_message.count( status_code ) ) ? status_message.at( status_code ) : "";
+            return ( status.count( status_code ) ) ? status.at( status_code ) : "";
         }
     }
 }

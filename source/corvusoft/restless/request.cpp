@@ -65,7 +65,7 @@ namespace corvusoft
 
         }
         
-        multimap< const string, const string > Request::get_headers( const string& name ) const
+        multimap< string, string > Request::get_headers( const string& name ) const
         {
 
         }
@@ -75,7 +75,7 @@ namespace corvusoft
 
         }
 
-        multimap< const string, const string > Request::get_query_parameters( const string& name ) const
+        multimap< string, string > Request::get_query_parameters( const string& name ) const
         {
 
         }
@@ -116,7 +116,7 @@ namespace corvusoft
         
         }
         
-        void Request::set_headers( const multimap< const string, const string >& values )
+        void Request::set_headers( const multimap< string, string >& values )
         {
         
         }
@@ -126,7 +126,7 @@ namespace corvusoft
 
         }
 
-        void set_query_parameters( const multimap< const string, const string >& values )
+        void set_query_parameters( const multimap< string, string >& values )
         {
 
         }

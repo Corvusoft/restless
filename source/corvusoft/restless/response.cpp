@@ -3,6 +3,7 @@
  */
 
 //System Includes
+#include <stdexcept>
 
 //Project Includes
 #include "corvusoft/restless/status.hpp"
@@ -11,15 +12,19 @@
 //External Includes
 
 //System Namespaces
+using std::stod;
 using std::string;
 using std::function;
 using std::multimap;
+using std::out_of_range;
+using std::invalid_argument;
 
 //Project Namespaces
 
 //External Namespaces
 using corvusoft::core::Bytes;
 using corvusoft::core::make_bytes;
+using corvusoft::core::make_string;
 using corvusoft::protocol::Message;
 
 namespace corvusoft
@@ -38,23 +43,28 @@ namespace corvusoft
 
         bool Response::has_header( const string& name ) const
         {
-            return has( "request:header:" + name );
+            return has( "header:" + name );
         }
         
         double Response::get_version( void ) const
         {
-            //remeber locale bug!
-            //should the logic remain in the protocol? yes i'd say.
+            static const auto default_value = 0.0;
+            if ( not has( "version" ) ) return default_value;
+
+            try { return stod( make_string( get( "version" ) ) ); }
+            catch ( const out_of_range& oor   ) { return default_value; }
+            catch ( const invalid_argument ia ) { return default_value; }
+            return default_value;
         }
         
         int Response::get_status_code( void ) const
         {
-        
+            return 0;
         }
         
         string Response::get_status_message( const function< string ( const string& ) >& transform ) const
         {
-            
+            return "";
         }
         
         string Response::get_protocol( const function< string ( const string& ) >& transform ) const
@@ -77,7 +87,7 @@ namespace corvusoft
         
         }
         
-        multimap< const string, const string > Response::get_headers( const string& name ) const
+        multimap< string, string > Response::get_headers( const string& name ) const
         {
         
         }
@@ -119,7 +129,7 @@ namespace corvusoft
             //add_header( name, value );
         }
         
-        void Response::set_headers( const multimap< const string, const string >& values )
+        void Response::set_headers( const multimap< string, string >& values )
         {
             //erase( "header:" + name );
             //add_header( name, value );

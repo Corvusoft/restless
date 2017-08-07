@@ -65,7 +65,7 @@ set_target_properties( ${SHARED_LIBRARY_NAME} PROPERTIES SOVERSION ${PROJECT_VER
 target_link_libraries( ${SHARED_LIBRARY_NAME} ${core_SHARED_LIBRARY} ${runloop_SHARED_LIBRARY} ${network_SHARED_LIBRARY} ${protocol_SHARED_LIBRARY} )
 
 enable_testing( )
-#add_subdirectory( "${PROJECT_SOURCE_DIR}/test/unit" )
+add_subdirectory( "${PROJECT_SOURCE_DIR}/test/unit" )
 #add_subdirectory( "${PROJECT_SOURCE_DIR}/test/acceptance" )
 #add_subdirectory( "${PROJECT_SOURCE_DIR}/test/regression" )
 #add_subdirectory( "${PROJECT_SOURCE_DIR}/test/integration" )

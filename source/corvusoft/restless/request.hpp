@@ -59,11 +59,11 @@ namespace corvusoft
                 
                 std::string get_header( const std::string& name, const std::string& default_value ) const;
                 
-                std::multimap< const std::string, const std::string > get_headers( const std::string& name = "" ) const;
+                std::multimap< std::string, std::string > get_headers( const std::string& name = "" ) const;
                 
                 std::string get_query_parameter( const std::string& name, const std::string& default_value ) const;
 
-                std::multimap< const std::string, const std::string > get_query_parameters( const std::string& name = "" ) const;
+                std::multimap< std::string, std::string > get_query_parameters( const std::string& name = "" ) const;
 
                 //Setters
                 //void set_uri( const core::URI& value );
@@ -82,11 +82,11 @@ namespace corvusoft
                 
                 void set_header( const std::string& name, const std::string& value );
                 
-                void set_headers( const std::multimap< const std::string, const std::string >& values );
+                void set_headers( const std::multimap< std::string, std::string >& values );
 
                 void set_query_parameter( const std::string& name, const std::string& value );
 
-                void set_query_parameters( const std::multimap< const std::string, const std::string >& values );
+                void set_query_parameters( const std::multimap< std::string, std::string >& values );
                 
                 //Operators
                 

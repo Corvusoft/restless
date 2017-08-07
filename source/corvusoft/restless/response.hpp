@@ -67,7 +67,7 @@ namespace corvusoft
                 
                 std::string get_header( const std::string& name, const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
                 
-                std::multimap< const std::string, const std::string > get_headers( const std::string& name = "" ) const;
+                std::multimap< std::string, std::string > get_headers( const std::string& name = "" ) const;
                 
                 //Setters
                 void set_version( const double value );
@@ -84,7 +84,7 @@ namespace corvusoft
                 
                 void set_header( const std::string& name, const std::string& value );
                 
-                void set_headers( const std::multimap< const std::string, const std::string >& values );
+                void set_headers( const std::multimap< std::string, std::string >& values );
                 
                 //Operators
                 
