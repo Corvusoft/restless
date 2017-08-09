@@ -24,7 +24,7 @@
 namespace corvusoft
 {
     //Forward Declarations
-
+    
     namespace restless
     {
         //Forward Declarations
@@ -44,13 +44,17 @@ namespace corvusoft
                 //Functionality
                 
                 //Getters
+                int get_connection_limit( void ) const;
+                
                 std::string get_bind_address( void ) const;
-
+                
                 std::chrono::milliseconds get_connection_timeout( void ) const;
                 
                 //Setters
+                void set_connection_limit( const int value );
+                
                 void set_bind_address( const std::string& value );
-
+                
                 void set_connection_timeout( const std::chrono::milliseconds& value );
                 
                 //Operators
@@ -85,9 +89,9 @@ namespace corvusoft
                 //Functionality
                 
                 //Getters
-
+                
                 //Setters
-
+                
                 //Operators
                 Settings& operator =( const Settings& value ) = delete;
                 

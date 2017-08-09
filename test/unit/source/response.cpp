@@ -72,7 +72,10 @@ TEST_CASE( "Modify response instance." )
     REQUIRE( response->get_header( "Content-Type", "1234" ) == "application/yaml" );
     REQUIRE( response->get_header( "LINK" ) == "" );
     
-    auto values = multimap< string, string >
+    multimap< string, string > values = { { "Content-Type", "application/yaml" } };
+    REQUIRE( response->get_headers( ) == values );
+    
+    values = multimap< string, string >
     {
         { "HDR1", "Value 1"   },
         { "HDR1", "Value One" },

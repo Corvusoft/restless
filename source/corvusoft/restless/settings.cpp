@@ -32,6 +32,11 @@ namespace corvusoft
             return;
         }
         
+        int Settings::get_connection_limit( void ) const
+        {
+            return get( "connection:limit", 0 );
+        }
+        
         string Settings::get_bind_address( void ) const
         {
             return get( "bind:address" );
@@ -41,6 +46,11 @@ namespace corvusoft
         {
             static const auto default_value = milliseconds( 10000 ).count( );
             return milliseconds( get( "connection:timeout", default_value ) );
+        }
+        
+        void Settings::set_connection_limit( const int value )
+        {
+            set( "connection:limit", value );
         }
         
         void Settings::set_bind_address( const string& value )

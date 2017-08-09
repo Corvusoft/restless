@@ -62,11 +62,12 @@ namespace corvusoft
         bool Session::is_open( void ) const
         {
             //has pending requests
+            return false;
         }
         
         bool Session::is_closed( void ) const
         {
-        
+            return true;
         }
         
         void Session::wait( const milliseconds& duration )
@@ -218,102 +219,111 @@ namespace corvusoft
         
         string Session::get_key( void ) const
         {
-        
+            return m_pimpl->key;
         }
         
         shared_ptr< Settings > Session::get_settings( void ) const
         {
-        
+            return m_pimpl->settings;
         }
         
         shared_ptr< RunLoop > Session::get_runloop( void ) const
         {
-        
+            return m_pimpl->runloop;
         }
         
         shared_ptr< Adaptor > Session::get_network( void ) const
         {
-        
+            return m_pimpl->adaptor;
         }
         
         shared_ptr< Protocol > Session::get_protocol( void ) const
         {
-        
+            return m_pimpl->protocol;
         }
         
         multimap< string, string > Session::get_default_headers( void ) const
         {
-        
+            multimap< string, string > values = m_pimpl->default_headers;
+            
+            for ( const auto& header : m_pimpl->computed_headers )
+                values.emplace( header.first, header.second( ) );
+                
+            return values;
         }
         
         function< error_code ( const int, const string ) > Session::get_log_handler( void ) const
         {
-        
+            return m_pimpl->log_handler;
         }
         
         function< error_code ( const shared_ptr< const Request > ) > Session::get_connection_timeout_handler( void ) const
         {
-        
+            return m_pimpl->connection_timeout_handler;
         }
         
         function< error_code ( const shared_ptr< const Request >, const shared_ptr< const Response >, const error_code ) > Session::get_error_handler( void ) const
         {
-        
+            return m_pimpl->error_handler;
         }
         
         void Session::set_key( const string& value )
         {
-        
+            m_pimpl->key = value;
         }
         
         void Session::set_settings( const shared_ptr< Settings >& value )
         {
-        
+            m_pimpl->settings = value;
         }
         
         void Session::set_runloop( const shared_ptr< RunLoop >& value )
         {
-        
+            m_pimpl->runloop = value;
         }
         
         void Session::set_network( const shared_ptr< Adaptor >& value )
         {
-        
+            m_pimpl->adaptor = value;
         }
         
         void Session::set_protocol( const shared_ptr< Protocol >& value )
         {
-        
+            m_pimpl->protocol = value;
         }
         
         void Session::set_default_header( const string& name, const string& value )
         {
-        
+            m_pimpl->default_headers.emplace( name, value );
         }
         
         void Session::set_default_header( const string& name, const function< string ( void ) >& value )
         {
-        
+            if ( value == nullptr )
+                m_pimpl->default_headers.emplace( name, "" );
+            else
+                m_pimpl->computed_headers.emplace( name, value );
         }
         
         void Session::set_default_headers( const multimap< string, string >& values )
         {
-        
+            m_pimpl->computed_headers.clear( );
+            m_pimpl->default_headers = values;
         }
         
         void Session::set_log_handler( const function< error_code ( const int, const string ) >& value )
         {
-        
+            m_pimpl->log_handler = value;
         }
         
         void Session::set_connection_timeout_handler( const function< error_code ( const shared_ptr< const Request > ) >& value )
         {
-        
+            m_pimpl->connection_timeout_handler = value;
         }
         
         void Session::set_error_handler( const function< error_code ( const shared_ptr< const Request >, const shared_ptr< const Response >, const error_code ) >& value )
         {
-        
+            m_pimpl->error_handler = value;
         }
     }
 }

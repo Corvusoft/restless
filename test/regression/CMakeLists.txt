@@ -1,6 +1,6 @@
 cmake_minimum_required( VERSION 3.1.0 FATAL_ERROR )
 
-project( "unit test suite" VERSION 2.0.0 LANGUAGES CXX )
+project( "regression test suite" VERSION 2.0.0 LANGUAGES CXX )
 
 #
 # Configuration

@@ -68,7 +68,10 @@ TEST_CASE( "Modify request instance." )
     REQUIRE( request->get_header( "Content-Type" ) == "application/yaml" );
     REQUIRE( request->get_header( "LINK" ) == "" );
     
-    auto values = multimap< string, string >
+    multimap< string, string > values = { { "Content-Type", "application/yaml" } };
+    REQUIRE( request->get_headers( ) == values );
+    
+    values = multimap< string, string >
     {
         { "HDR1", "Value 1"   },
         { "HDR1", "Value One" },
