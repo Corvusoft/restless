@@ -72,7 +72,8 @@ namespace corvusoft
         
         void Session::wait( const milliseconds& duration )
         {
-        
+            if ( m_pimpl->runloop )
+                m_pimpl->runloop->wait( duration );
         }
         
         void Session::get( const shared_ptr< Request > request,
@@ -80,14 +81,16 @@ namespace corvusoft
                            const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "GET" );
+            send( request, response_handler, upload_handler, download_handler );
         }
         
         void Session::get( const shared_ptr< Request > request,
-                           const function< void ( const shared_ptr< const Response > ) > response_handler,
+                           const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "GET" );
+            send( request, response_handler, download_handler );
         }
         
         void Session::put( const shared_ptr< Request > request,
@@ -95,14 +98,16 @@ namespace corvusoft
                            const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "PUT" );
+            send( request, response_handler, upload_handler, download_handler );
         }
         
         void Session::put( const shared_ptr< Request > request,
-                           const function< void ( const shared_ptr< const Response > ) > response_handler,
+                           const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "PUT" );
+            send( request, response_handler, download_handler );
         }
         
         void Session::post( const shared_ptr< Request > request,
@@ -110,14 +115,16 @@ namespace corvusoft
                             const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "POST" );
+            send( request, response_handler, upload_handler, download_handler );
         }
         
         void Session::post( const shared_ptr< Request > request,
-                            const function< void ( const shared_ptr< const Response > ) > response_handler,
+                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "POST" );
+            send( request, response_handler, download_handler );
         }
         
         void Session::patch( const shared_ptr< Request > request,
@@ -125,14 +132,16 @@ namespace corvusoft
                              const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                              const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "PATCH" );
+            send( request, response_handler, upload_handler, download_handler );
         }
         
         void Session::patch( const shared_ptr< Request > request,
-                             const function< void ( const shared_ptr< const Response > ) > response_handler,
+                             const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                              const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "PATCH" );
+            send( request, response_handler, download_handler );
         }
         
         void Session::head( const shared_ptr< Request > request,
@@ -140,14 +149,16 @@ namespace corvusoft
                             const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "HEAD" );
+            send( request, response_handler, upload_handler, download_handler );
         }
         
         void Session::head( const shared_ptr< Request > request,
-                            const function< void ( const shared_ptr< const Response > ) > response_handler,
+                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "HEAD" );
+            send( request, response_handler, download_handler );
         }
         
         void Session::destroy( const shared_ptr< Request > request,
@@ -155,14 +166,16 @@ namespace corvusoft
                                const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                                const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "DELETE" );
+            send( request, response_handler, upload_handler, download_handler );
         }
         
         void Session::destroy( const shared_ptr< Request > request,
-                               const function< void ( const shared_ptr< const Response > ) > response_handler,
+                               const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                                const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "DELETE" );
+            send( request, response_handler, download_handler );
         }
         
         void Session::options( const shared_ptr< Request > request,
@@ -170,14 +183,16 @@ namespace corvusoft
                                const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                                const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "OPTIONS" );
+            send( request, response_handler, upload_handler, download_handler );
         }
         
         void Session::options( const shared_ptr< Request > request,
-                               const function< void ( const shared_ptr< const Response > ) > response_handler,
+                               const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                                const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "OPTIONS" );
+            send( request, response_handler, download_handler );
         }
         
         void Session::trace( const shared_ptr< Request > request,
@@ -185,14 +200,16 @@ namespace corvusoft
                              const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                              const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "TRACE" );
+            send( request, response_handler, upload_handler, download_handler );
         }
         
         void Session::trace( const shared_ptr< Request > request,
-                             const function< void ( const shared_ptr< const Response > ) > response_handler,
+                             const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                              const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            request->set_method( "TRACE" );
+            send( request, response_handler, download_handler );
         }
         
         void Session::send( const shared_ptr< Request > request,
@@ -204,10 +221,10 @@ namespace corvusoft
         }
         
         void Session::send( const shared_ptr< Request > request,
-                            const function< void ( const shared_ptr< const Response > ) > response_handler,
+                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            send( request, response_handler, nullptr, download_handler );
         }
         
         void Session::observe( const shared_ptr< Request > request,

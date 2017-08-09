@@ -80,7 +80,7 @@ namespace corvusoft
                           const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                           
                 void get( const std::shared_ptr< Request > request,
-                          const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                          const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                           const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                           
                 void put( const std::shared_ptr< Request > request,
@@ -89,7 +89,7 @@ namespace corvusoft
                           const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                           
                 void put( const std::shared_ptr< Request > request,
-                          const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                          const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                           const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                           
                 void post( const std::shared_ptr< Request > request,
@@ -98,7 +98,7 @@ namespace corvusoft
                            const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                            
                 void post( const std::shared_ptr< Request > request,
-                           const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                           const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                            const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                            
                 void patch( const std::shared_ptr< Request > request,
@@ -107,7 +107,7 @@ namespace corvusoft
                             const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                             
                 void patch( const std::shared_ptr< Request > request,
-                            const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                            const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                             const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                             
                 void head( const std::shared_ptr< Request > request,
@@ -116,7 +116,7 @@ namespace corvusoft
                            const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                            
                 void head( const std::shared_ptr< Request > request,
-                           const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                           const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                            const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                            
                 void destroy( const std::shared_ptr< Request > request,
@@ -125,7 +125,7 @@ namespace corvusoft
                               const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                               
                 void destroy( const std::shared_ptr< Request > request,
-                              const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                              const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                               const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                               
                 void options( const std::shared_ptr< Request > request,
@@ -134,7 +134,7 @@ namespace corvusoft
                               const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                               
                 void options( const std::shared_ptr< Request > request,
-                              const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                              const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                               const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                               
                 void trace( const std::shared_ptr< Request > request,
@@ -143,7 +143,7 @@ namespace corvusoft
                             const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                             
                 void trace( const std::shared_ptr< Request > request,
-                            const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                            const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                             const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                             
                 void send( const std::shared_ptr< Request > request,
@@ -152,7 +152,7 @@ namespace corvusoft
                            const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                            
                 void send( const std::shared_ptr< Request > request,
-                           const std::function< void ( const std::shared_ptr< const Response > ) > response_handler,
+                           const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
                            const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
                            
                 void observe( const std::shared_ptr< Request > request,
