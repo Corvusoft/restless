@@ -3,7 +3,10 @@
  */
 
 //System Includes
+#include <mutex>
+#include <tuple>
 #include <ciso646>
+#include <condition_variable>
 
 //Project Includes
 #include "corvusoft/restless/session.hpp"
@@ -21,12 +24,20 @@
 #include <corvusoft/network/tcpip_adaptor.hpp> //why not just call it tcpip.hpp?
 
 //System Namespaces
+using std::tuple;
+using std::mutex;
 using std::string;
+using std::vector;
 using std::function;
 using std::multimap;
+using std::make_tuple;
 using std::error_code;
 using std::shared_ptr;
 using std::unique_ptr;
+using std::unique_lock;
+using std::make_shared;
+using std::make_error_code;
+using std::condition_variable;
 using std::chrono::milliseconds;
 
 //Project Namespaces
@@ -54,11 +65,6 @@ namespace corvusoft
             return;
         }
         
-        void Session::close( void )
-        {
-        
-        }
-        
         bool Session::is_open( void ) const
         {
             //has pending requests
@@ -70,173 +76,221 @@ namespace corvusoft
             return true;
         }
         
-        void Session::wait( const milliseconds& duration )
+        error_code Session::close( void )
+        {
+            return error_code( );
+        }
+        
+        error_code Session::open( const string& full_qualified_domain_name, const uint16_t port )
+        {
+            if ( m_pimpl->runloop  ) return make_error_code( std::errc::invalid_argument );
+            if ( m_pimpl->network  ) return make_error_code( std::errc::invalid_argument ); //custom message.
+            if ( m_pimpl->protocol ) return make_error_code( std::errc::invalid_argument );
+            if ( m_pimpl->settings ) return make_error_code( std::errc::invalid_argument );
+            //etc...
+            const auto settings = make_shared< Settings >( );
+            settings->set( "port", port );
+            //settings->set_address( "address", Hostname::to_address( full_qualified_domain_name ) );
+            
+            vector< shared_ptr< Adaptor > > adaptors { };
+            const auto limit = m_pimpl->settings->get_connection_limit( );
+            for ( auto index = 0; index not_eq limit; index++ )
+            {
+                //factory; just a header for functions?
+                shared_ptr< Adaptor > adaptor = nullptr;
+                
+                auto error = make_adaptor( adaptor );
+                if ( error ) return error;
+                
+                //adaptor->set_open_handler( bind( m_pimpl->open_handler ) );//std::bind
+                //adaptor->set_close_handler( bind( m_pimpl->close_handler ) );//std::bind
+                //adaptor->set_error_handler( bind( m_pimpl->fault_handler ) );//std::bind
+                //adaptor->set_message_handler( bind( m_pimpl->message_handler, response_handler ) );//std::bind
+                
+                error = adaptor->open( settings );
+                if ( error ) return error;
+                
+                adaptors.emplace_back( adaptor );
+            }
+            
+            //m_pimpl->sockets = adaptors;
+            
+            for ( auto adaptor : adaptors ) m_pimpl->runloop->launch_on( m_pimpl->has_pending_requests, m_pimpl->perform_request );
+            //will the runloop tightloop? if so what about having a runloop->wakeup( );
+            //to force all tasks to be queried?
+            
+            return error_code( );
+        }
+        
+        error_code Session::wait( const milliseconds& duration )
         {
             if ( m_pimpl->runloop )
-                m_pimpl->runloop->wait( duration );
+                return m_pimpl->runloop->wait( duration );
+                
+            return error_code( );
         }
         
-        void Session::get( const shared_ptr< Request > request,
-                           const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                           const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                           const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::get( const shared_ptr< Request > request,
+                                 const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                 const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                 const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "GET" );
-            send( request, response_handler, upload_handler, download_handler );
+            return send( request, response_handler, upload_handler, download_handler );
         }
         
-        void Session::get( const shared_ptr< Request > request,
-                           const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                           const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::get( const shared_ptr< Request > request,
+                                 const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                 const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "GET" );
-            send( request, response_handler, download_handler );
+            return send( request, response_handler, download_handler );
         }
         
-        void Session::put( const shared_ptr< Request > request,
-                           const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                           const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                           const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::put( const shared_ptr< Request > request,
+                                 const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                 const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                 const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "PUT" );
-            send( request, response_handler, upload_handler, download_handler );
+            return send( request, response_handler, upload_handler, download_handler );
         }
         
-        void Session::put( const shared_ptr< Request > request,
-                           const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                           const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::put( const shared_ptr< Request > request,
+                                 const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                 const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "PUT" );
-            send( request, response_handler, download_handler );
+            return send( request, response_handler, download_handler );
         }
         
-        void Session::post( const shared_ptr< Request > request,
-                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                            const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::post( const shared_ptr< Request > request,
+                                  const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                  const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                  const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "POST" );
-            send( request, response_handler, upload_handler, download_handler );
+            return send( request, response_handler, upload_handler, download_handler );
         }
         
-        void Session::post( const shared_ptr< Request > request,
-                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::post( const shared_ptr< Request > request,
+                                  const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                  const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "POST" );
-            send( request, response_handler, download_handler );
+            return send( request, response_handler, download_handler );
         }
         
-        void Session::patch( const shared_ptr< Request > request,
-                             const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                             const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::patch( const shared_ptr< Request > request,
+                                   const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                   const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                   const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "PATCH" );
-            send( request, response_handler, upload_handler, download_handler );
+            return send( request, response_handler, upload_handler, download_handler );
         }
         
-        void Session::patch( const shared_ptr< Request > request,
-                             const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::patch( const shared_ptr< Request > request,
+                                   const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                   const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "PATCH" );
-            send( request, response_handler, download_handler );
+            return send( request, response_handler, download_handler );
         }
         
-        void Session::head( const shared_ptr< Request > request,
-                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                            const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::head( const shared_ptr< Request > request,
+                                  const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                  const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                  const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "HEAD" );
-            send( request, response_handler, upload_handler, download_handler );
+            return send( request, response_handler, upload_handler, download_handler );
         }
         
-        void Session::head( const shared_ptr< Request > request,
-                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::head( const shared_ptr< Request > request,
+                                  const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                  const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "HEAD" );
-            send( request, response_handler, download_handler );
+            return send( request, response_handler, download_handler );
         }
         
-        void Session::destroy( const shared_ptr< Request > request,
-                               const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                               const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                               const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::destroy( const shared_ptr< Request > request,
+                                     const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                     const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                     const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "DELETE" );
-            send( request, response_handler, upload_handler, download_handler );
+            return send( request, response_handler, upload_handler, download_handler );
         }
         
-        void Session::destroy( const shared_ptr< Request > request,
-                               const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                               const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::destroy( const shared_ptr< Request > request,
+                                     const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                     const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "DELETE" );
-            send( request, response_handler, download_handler );
+            return send( request, response_handler, download_handler );
         }
         
-        void Session::options( const shared_ptr< Request > request,
-                               const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                               const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                               const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::options( const shared_ptr< Request > request,
+                                     const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                     const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                     const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "OPTIONS" );
-            send( request, response_handler, upload_handler, download_handler );
+            return send( request, response_handler, upload_handler, download_handler );
         }
         
-        void Session::options( const shared_ptr< Request > request,
-                               const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                               const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::options( const shared_ptr< Request > request,
+                                     const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                     const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "OPTIONS" );
-            send( request, response_handler, download_handler );
+            return send( request, response_handler, download_handler );
         }
         
-        void Session::trace( const shared_ptr< Request > request,
-                             const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                             const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::trace( const shared_ptr< Request > request,
+                                   const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                   const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                   const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "TRACE" );
-            send( request, response_handler, upload_handler, download_handler );
+            return send( request, response_handler, upload_handler, download_handler );
         }
         
-        void Session::trace( const shared_ptr< Request > request,
-                             const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                             const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::trace( const shared_ptr< Request > request,
+                                   const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                   const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
             request->set_method( "TRACE" );
-            send( request, response_handler, download_handler );
+            return send( request, response_handler, download_handler );
         }
         
-        void Session::send( const shared_ptr< Request > request,
-                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                            const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::send( const shared_ptr< Request > request,
+                                  const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                  const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
+                                  const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-        
+            unique_lock< mutex > guard( m_pimpl->task_lock );
+            m_pimpl->tasks.emplace_back( make_tuple( request, response_handler, upload_handler, download_handler ) );
+            guard.unlock( );
+            
+            m_pimpl->pending_work.notify_one( );
+            return error_code( );
         }
         
-        void Session::send( const shared_ptr< Request > request,
-                            const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-                            const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        error_code Session::send( const shared_ptr< Request > request,
+                                  const function< error_code ( const shared_ptr< const Response > ) > response_handler,
+                                  const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-            send( request, response_handler, nullptr, download_handler );
+            return send( request, response_handler, nullptr, download_handler );
         }
         
-        void Session::observe( const shared_ptr< Request > request,
-                               const function< milliseconds ( const shared_ptr< const Response > ) > event_handler,
-                               const function< error_code ( const shared_ptr< const Response > ) > reaction_handler )
+        error_code Session::observe( const shared_ptr< Request > request,
+                                     const function< milliseconds ( const shared_ptr< const Response > ) > event_handler,
+                                     const function< error_code ( const shared_ptr< const Response > ) > reaction_handler )
         {
             //to reschedule itself.
-        }
-        
-        string Session::get_key( void ) const
-        {
-            return m_pimpl->key;
         }
         
         shared_ptr< Settings > Session::get_settings( void ) const
@@ -251,7 +305,7 @@ namespace corvusoft
         
         shared_ptr< Adaptor > Session::get_network( void ) const
         {
-            return m_pimpl->adaptor;
+            return m_pimpl->network;
         }
         
         shared_ptr< Protocol > Session::get_protocol( void ) const
@@ -284,11 +338,6 @@ namespace corvusoft
             return m_pimpl->error_handler;
         }
         
-        void Session::set_key( const string& value )
-        {
-            m_pimpl->key = value;
-        }
-        
         void Session::set_settings( const shared_ptr< Settings >& value )
         {
             m_pimpl->settings = value;
@@ -301,7 +350,7 @@ namespace corvusoft
         
         void Session::set_network( const shared_ptr< Adaptor >& value )
         {
-            m_pimpl->adaptor = value;
+            m_pimpl->network = value;
         }
         
         void Session::set_protocol( const shared_ptr< Protocol >& value )

@@ -42,6 +42,7 @@ namespace corvusoft
                 virtual ~Settings( void );
                 
                 //Functionality
+                //bool has_pipelining_enabled( void ) const;
                 
                 //Getters
                 int get_connection_limit( void ) const;
@@ -52,6 +53,8 @@ namespace corvusoft
                 
                 //Setters
                 void set_connection_limit( const int value );
+                
+                //void set_pipelining_enabled( const bool value );
                 
                 void set_bind_address( const std::string& value );
                 

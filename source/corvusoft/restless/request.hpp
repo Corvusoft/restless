@@ -44,8 +44,6 @@ namespace corvusoft
                 //Functionality
                 
                 //Getters
-                //core::URI get_uri( void ) const;
-                
                 double get_version( void ) const;
                 
                 core::Bytes get_body( void ) const;
@@ -65,8 +63,6 @@ namespace corvusoft
                 std::multimap< std::string, std::string > get_query_parameters( void ) const;
                 
                 //Setters
-                //void set_uri( const core::URI& value );
-                
                 void set_version( const double value );
                 
                 void set_body( const core::Bytes& value );

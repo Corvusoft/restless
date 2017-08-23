@@ -31,7 +31,6 @@ TEST_CASE( "Set-up session instance." )
     const auto session = make_shared< Session >( );
     REQUIRE( session->is_open( ) == false );
     REQUIRE( session->is_closed( ) == true );
-    REQUIRE( session->get_key( ).empty( ) );
     REQUIRE( session->get_settings( ) == nullptr );
     REQUIRE( session->get_runloop( ) == nullptr );
     REQUIRE( session->get_network( ) == nullptr );
@@ -51,9 +50,6 @@ TEST_CASE( "Clean-up session instance." )
 TEST_CASE( "Modify session instance." )
 {
     const auto session = make_shared< Session >( );
-    session->set_key( "UUID VALUE" );
-    REQUIRE( session->get_key( ) == "UUID VALUE" );
-    
     session->set_default_header( "HDR1", "VALUE1" );
     session->set_default_header( "HDR1", "VALUE2" );
     session->set_default_header( "HDR2", "" );
