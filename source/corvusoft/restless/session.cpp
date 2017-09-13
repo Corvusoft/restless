@@ -3,10 +3,8 @@
  */
 
 //System Includes
-#include <mutex>
 #include <tuple>
 #include <ciso646>
-#include <condition_variable>
 
 //Project Includes
 #include "corvusoft/restless/session.hpp"
@@ -25,19 +23,15 @@
 
 //System Namespaces
 using std::tuple;
-using std::mutex;
 using std::string;
-using std::vector;
 using std::function;
 using std::multimap;
 using std::make_tuple;
 using std::error_code;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::unique_lock;
 using std::make_shared;
 using std::make_error_code;
-using std::condition_variable;
 using std::chrono::milliseconds;
 
 //Project Namespaces
@@ -81,53 +75,37 @@ namespace corvusoft
             return error_code( );
         }
         
-        error_code Session::open( const string& full_qualified_domain_name, const uint16_t port )
+        error_code Session::open( const string& address, const uint16_t port )
         {
-            if ( m_pimpl->runloop  ) return make_error_code( std::errc::invalid_argument );
-            if ( m_pimpl->network  ) return make_error_code( std::errc::invalid_argument ); //custom message.
-            if ( m_pimpl->protocol ) return make_error_code( std::errc::invalid_argument );
-            if ( m_pimpl->settings ) return make_error_code( std::errc::invalid_argument );
-            //etc...
-            const auto settings = make_shared< Settings >( );
+            if ( not m_pimpl->runloop  ) m_pimpl->runloop = make_shared< RunLoop >( );
+            if ( not m_pimpl->adaptor  ) m_pimpl->adaptor = TCPIPAdaptor::create( ); //remove the creat method it can't be force across implementations.
+            if ( not m_pimpl->protocol ) m_pimpl->protocol = make_shared< HTTP >( );
+            if ( not m_pimpl->settings ) m_pimpl->settings = make_shared< Settings >( );
+            
+            const auto settings = make_shared< Settings >( ); //why not just m_pimpl->settings?
             settings->set( "port", port );
-            //settings->set_address( "address", Hostname::to_address( full_qualified_domain_name ) );
+            settings->set( "address", address ); //provide Hostname::to_address( hostname ); functionality in network.
             
-            vector< shared_ptr< Adaptor > > adaptors { };
-            const auto limit = m_pimpl->settings->get_connection_limit( );
-            for ( auto index = 0; index not_eq limit; index++ )
-            {
-                //factory; just a header for functions?
-                shared_ptr< Adaptor > adaptor = nullptr;
-                
-                auto error = make_adaptor( adaptor );
-                if ( error ) return error;
-                
-                //adaptor->set_open_handler( bind( m_pimpl->open_handler ) );//std::bind
-                //adaptor->set_close_handler( bind( m_pimpl->close_handler ) );//std::bind
-                //adaptor->set_error_handler( bind( m_pimpl->fault_handler ) );//std::bind
-                //adaptor->set_message_handler( bind( m_pimpl->message_handler, response_handler ) );//std::bind
-                
-                error = adaptor->open( settings );
-                if ( error ) return error;
-                
-                adaptors.emplace_back( adaptor );
-            }
+            //m_pimpl->protocol->setup( ); //don't forget teardown.
             
-            //m_pimpl->sockets = adaptors;
+            auto error = m_pimpl->adaptor->setup( m_pimpl->runloop );
+            if ( error ) return error;
             
-            for ( auto adaptor : adaptors ) m_pimpl->runloop->launch_on( m_pimpl->has_pending_requests, m_pimpl->perform_request );
-            //will the runloop tightloop? if so what about having a runloop->wakeup( );
-            //to force all tasks to be queried?
+            error = m_pimpl->adaptor->open( settings );
+            if ( error ) return error;
             
-            return error_code( );
+            m_pimpl->runloop->launch_if( m_pimpl->has_pending_requests, m_pimpl->perform_request );
+            return error_code( ); //m_pimpl->runloop->start( );
+            //we need to review the adaptor API, if you must call runloop->start
+            //then it should a mandatory DI element.
         }
         
         error_code Session::wait( const milliseconds& duration )
         {
-            if ( m_pimpl->runloop )
-                return m_pimpl->runloop->wait( duration );
+            if ( not m_pimpl->runloop )
+                return error_code( );
                 
-            return error_code( );
+            return m_pimpl->runloop->wait( duration );
         }
         
         error_code Session::get( const shared_ptr< Request > request,
@@ -271,11 +249,7 @@ namespace corvusoft
                                   const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
                                   const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
         {
-            unique_lock< mutex > guard( m_pimpl->task_lock );
-            m_pimpl->tasks.emplace_back( make_tuple( request, response_handler, upload_handler, download_handler ) );
-            guard.unlock( );
-            
-            m_pimpl->pending_work.notify_one( );
+            m_pimpl->tasks.emplace( make_tuple( request, response_handler, upload_handler, download_handler ) );
             return error_code( );
         }
         
@@ -286,6 +260,7 @@ namespace corvusoft
             return send( request, response_handler, nullptr, download_handler );
         }
         
+        //move to 2.5
         error_code Session::observe( const shared_ptr< Request > request,
                                      const function< milliseconds ( const shared_ptr< const Response > ) > event_handler,
                                      const function< error_code ( const shared_ptr< const Response > ) > reaction_handler )
@@ -303,9 +278,9 @@ namespace corvusoft
             return m_pimpl->runloop;
         }
         
-        shared_ptr< Adaptor > Session::get_network( void ) const
+        shared_ptr< Adaptor > Session::get_adaptor( void ) const
         {
-            return m_pimpl->network;
+            return m_pimpl->adaptor;
         }
         
         shared_ptr< Protocol > Session::get_protocol( void ) const
@@ -348,9 +323,9 @@ namespace corvusoft
             m_pimpl->runloop = value;
         }
         
-        void Session::set_network( const shared_ptr< Adaptor >& value )
+        void Session::set_adaptor( const shared_ptr< Adaptor >& value )
         {
-            m_pimpl->network = value;
+            m_pimpl->adaptor = value;
         }
         
         void Session::set_protocol( const shared_ptr< Protocol >& value )

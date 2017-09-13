@@ -33,7 +33,7 @@ TEST_CASE( "Set-up session instance." )
     REQUIRE( session->is_closed( ) == true );
     REQUIRE( session->get_settings( ) == nullptr );
     REQUIRE( session->get_runloop( ) == nullptr );
-    REQUIRE( session->get_network( ) == nullptr );
+    REQUIRE( session->get_adaptor( ) == nullptr );
     REQUIRE( session->get_protocol( ) == nullptr );
     REQUIRE( session->get_default_headers( ).empty( ) );
     REQUIRE( session->get_log_handler( ) == nullptr );

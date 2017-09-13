@@ -39,8 +39,8 @@ TEST_CASE( "Modify session instance." )
     session->set_runloop( make_shared< RunLoop >( ) );
     REQUIRE( session->get_runloop( ) not_eq nullptr );
     
-    session->set_network( TCPIPAdaptor::create( ) );
-    REQUIRE( session->get_network( ) not_eq nullptr );
+    session->set_adaptor( TCPIPAdaptor::create( ) );
+    REQUIRE( session->get_adaptor( ) not_eq nullptr );
     
     session->set_protocol( make_shared< HTTP >( ) );
     REQUIRE( session->get_protocol( ) not_eq nullptr );

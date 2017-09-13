@@ -73,11 +73,7 @@ namespace corvusoft
                 
                 std::error_code close( void );
                 
-                std::error_code open( const std::string& full_qualified_domain_name, const uint16_t port = 80 );
-                
-                //std::error_code resume( void );
-                
-                //std::error_code suspend( void );
+                std::error_code open( const std::string& hostname, const uint16_t port = 80 );
                 
                 std::error_code wait( const std::chrono::milliseconds& duration = std::chrono::milliseconds::min( ) );
                 
@@ -165,12 +161,13 @@ namespace corvusoft
                 std::error_code observe( const std::shared_ptr< Request > request,
                                          const std::function< std::chrono::milliseconds ( const std::shared_ptr< const Response > ) > event_handler,
                                          const std::function< std::error_code ( const std::shared_ptr< const Response > ) > reaction_handler );
+                                         
                 //Getters
                 std::shared_ptr< Settings > get_settings( void ) const;
                 
                 std::shared_ptr< core::RunLoop > get_runloop( void ) const;
                 
-                std::shared_ptr< network::Adaptor > get_network( void ) const;
+                std::shared_ptr< network::Adaptor > get_adaptor( void ) const;
                 
                 std::shared_ptr< protocol::Protocol > get_protocol( void ) const;
                 
@@ -187,7 +184,7 @@ namespace corvusoft
                 
                 void set_runloop( const std::shared_ptr< core::RunLoop >& value );
                 
-                void set_network( const std::shared_ptr< network::Adaptor >& value );
+                void set_adaptor( const std::shared_ptr< network::Adaptor >& value );
                 
                 void set_protocol( const std::shared_ptr< protocol::Protocol >& value );
                 
@@ -202,6 +199,9 @@ namespace corvusoft
                 void set_connection_timeout_handler( const std::function< std::error_code ( const std::shared_ptr< const Request > ) >& value );
                 
                 void set_error_handler( const std::function< std::error_code ( const std::shared_ptr< const Request >, const std::shared_ptr< const Response >, const std::error_code ) >& value );
+                
+                //void set_open_handler;
+                //void set_close_handler;
                 
                 //Operators
                 

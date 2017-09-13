@@ -42,20 +42,13 @@ namespace corvusoft
                 virtual ~Settings( void );
                 
                 //Functionality
-                //bool has_pipelining_enabled( void ) const;
                 
                 //Getters
-                int get_connection_limit( void ) const;
-                
                 std::string get_bind_address( void ) const;
                 
                 std::chrono::milliseconds get_connection_timeout( void ) const;
                 
                 //Setters
-                void set_connection_limit( const int value );
-                
-                //void set_pipelining_enabled( const bool value );
-                
                 void set_bind_address( const std::string& value );
                 
                 void set_connection_timeout( const std::chrono::milliseconds& value );

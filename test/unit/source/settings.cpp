@@ -25,7 +25,6 @@ TEST_CASE( "Set-up settings instance." )
     REQUIRE_NOTHROW( Settings( ) );
     
     const auto settings = make_shared< Settings >( );
-    REQUIRE( settings->get_connection_limit( ) == 0 );
     REQUIRE( settings->get_bind_address( ) == "" );
     REQUIRE( settings->get_connection_timeout( ) == milliseconds( 10000 ) );
 }
@@ -39,12 +38,6 @@ TEST_CASE( "Clean-up settings instance." )
 TEST_CASE( "Modify settings instance." )
 {
     const auto settings = make_shared< Settings >( );
-    settings->set_connection_limit( 45 );
-    REQUIRE( settings->get_connection_limit( ) == 45 );
-    
-    settings->set_connection_limit( 0 );
-    REQUIRE( settings->get_connection_limit( ) == 0 );
-    
     settings->set_bind_address( "127.0.0.1" );
     REQUIRE( settings->get_bind_address( ) == "127.0.0.1" );
     

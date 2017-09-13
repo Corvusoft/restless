@@ -7,18 +7,17 @@
 
 //System Includes
 #include <map>
-#include <mutex>
 #include <tuple>
-#include <vector>
+#include <stack>
 #include <memory>
 #include <string>
 #include <functional>
 #include <system_error>
-#include <condition_variable>
 
 //Project Includes
 
 //External Includes
+#include <corvusoft/protocol/protocol.hpp>
 
 //System Namespaces
 
@@ -55,19 +54,13 @@ namespace corvusoft
             
             struct SessionImpl
             {
-                std::mutex task_lock { };
-                
-                std::condition_variable pending_work { };
-                
                 std::shared_ptr< Settings > settings = nullptr;
                 
                 std::shared_ptr< core::RunLoop > runloop = nullptr;
                 
-                std::shared_ptr< network::Adaptor > network = nullptr;
+                std::shared_ptr< network::Adaptor > adaptor = nullptr;
                 
                 std::shared_ptr< protocol::Protocol > protocol = nullptr;
-                
-                std::vector< std::shared_ptr< network::Adaptor > > sockets { };
                 
                 std::multimap< std::string, std::string > default_headers { };
                 
@@ -79,7 +72,7 @@ namespace corvusoft
                 
                 std::function< std::error_code ( const std::shared_ptr< const Request >, const std::shared_ptr< const Response >, const std::error_code ) > error_handler = nullptr;
                 
-                std::vector< std::tuple< const std::shared_ptr< Request >,
+                std::stack< std::tuple< const std::shared_ptr< Request >,
                     const std::function< std::error_code ( const std::shared_ptr< const Response > ) >,
                     const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) >,
                     const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > > > tasks { };
@@ -91,7 +84,7 @@ namespace corvusoft
                 
                 const std::function< void ( const std::shared_ptr< network::Adaptor > ) > close_handler = [ ]( const auto adaptor )
                 {
-                
+                    //runloop->cancel( "adaptor key" );
                 };
                 
                 const std::function< void ( const std::shared_ptr< network::Adaptor > ) > message_handler = [ ]( const auto adaptor )
@@ -101,44 +94,47 @@ namespace corvusoft
                 
                 const std::function< void ( const std::shared_ptr< network::Adaptor >, const std::error_code ) > fault_handler = [ ]( const auto adaptor, const auto error )
                 {
-                
+                    //log error then
+                    //if error code == connection timeout: connection_timeout_handler( );
+                    //else fault_handler( );
                 };
                 
-                std::error_code has_pending_requests( void ) const
+                const std::function< std::error_code ( void ) > has_pending_requests = [ this ]( void )
                 {
-                    if ( task_lock.try_lock( ) == false ) return std::error_code( ); //shoudl be try again.
-                    if ( tasks.empty( ) )
-                    {
-                        task_lock.unlock( );
-                        return std::error_code( ); //should be no work aailabel.
-                    }
-                    
-                    return std::error_code( );
-                }
+                    if ( not tasks.empty( ) )
+                        return std::error_code( );
+                        
+                    return std::make_error_code( std::errc::operation_not_permitted );
+                };
                 
-                std::error_code perform_request( const std::shared_ptr< network::Adaptor > adaptor )
+                const std::function< std::error_code ( void ) > perform_request = [ this ]( void )
                 {
-                    std::vector< std::tuple > requests { };
-                    if ( settings->has_pipelining_enabled( ) ) requests = tasks;
-                    else requests.emplace_back( tasks.front( ) ); //and remove.
-                    
-                    task_lock.unlock( );
-                    pending_work.notify_one( );
-                    
-                    for ( auto request : requests )
+                    while ( not tasks.empty( ) )
                     {
-                        //send request
+                        const auto task = tasks.top( );
+                        const auto request = std::get< 0 >( task );
+                        const auto response_handler = std::get< 1 >( task );
+                        const auto upload_handler = std::get< 2 >( task );
+                        const auto download_handler = std::get< 3 >( task );
+                        
+                        auto error = protocol->compose( adaptor, request ); //check for null on adaptor and protocol etc...
+                        //if ( error )
+                        
+                        tasks.pop( );
                     }
                     
-                    return std::error_code( );
-                }
+                    //adaptor->set_message_handler( bind( m_pimpl->message_handler, response_handler ) );//std::bind
+                    
+                    //add headers
+                    //std::error_code status { };
+                    //status = protocol->compose( request, adaptor );
+                    //if ( status ) return status; //call error handler and/or log.
+                    
+                    //for upload handler.
+                    
+                    return std::error_code( ); //reschedule response code.
+                };
             };
-        }
-        
-        std::error_code make_adaptor( std::shared_ptr< network::Adaptor >& adaptor ) //factory!
-        {
-            //auto adaptor = m_pimpl->network::create( );
-            return std::error_code( );
         }
     }
 }
