@@ -24,7 +24,7 @@ using corvusoft::restless::Settings;
 
 //External Namespaces
 
-TEST_CASE( "Complete request-response cycle." )
+TEST_CASE( "Request/Response cycle." )
 {
     auto settings = make_shared< Settings >( );
     
@@ -32,12 +32,13 @@ TEST_CASE( "Complete request-response cycle." )
     request->set_method( "GET" );
     
     auto session = make_shared< Session >( );
-    session->open( "178.62.20.193", 80 ); //add open_handler( session );
+    session->open( "178.62.20.193", 80, [ ]( const shared_ptr< Session >, const error_code error )
+    {
     
-    //session->send( request,
-    //    const function< error_code ( const shared_ptr< const Response > ) > response_handler,
-    //    const function< error_code ( const shared_ptr< Request >, const shared_ptr< Adaptor > ) > upload_handler,
-    //    const function< error_code ( const shared_ptr< Response >, const shared_ptr< Adaptor > ) > download_handler )
+        //session->send( request, const function< error_code ( const shared_ptr< const Response > ) > response_handler )
+        
+        return error_code( ); //failure kills session.
+    } );
     
     
     // auto adaptor = MockAdaptor::create( );

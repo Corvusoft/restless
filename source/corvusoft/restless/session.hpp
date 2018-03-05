@@ -17,6 +17,7 @@
 //Project Includes
 
 //External Includes
+#include <corvusoft/core/byte.hpp>
 
 //System Namespaces
 
@@ -71,97 +72,30 @@ namespace corvusoft
                 
                 bool is_closed( void ) const;
                 
-                std::error_code close( void );
+                std::error_code close( const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code error ) > completion_handler );
                 
-                std::error_code open( const std::string& hostname, const uint16_t port = 80 );
-                
-                std::error_code wait( const std::chrono::milliseconds& duration = std::chrono::milliseconds::min( ) );
-                
-                std::error_code get( const std::shared_ptr< Request > request,
-                                     const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                     const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                     const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                     
-                std::error_code get( const std::shared_ptr< Request > request,
-                                     const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                     const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                     
-                std::error_code put( const std::shared_ptr< Request > request,
-                                     const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                     const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                     const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                     
-                std::error_code put( const std::shared_ptr< Request > request,
-                                     const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                     const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                     
-                std::error_code post( const std::shared_ptr< Request > request,
-                                      const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                      const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                      const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                      
-                std::error_code post( const std::shared_ptr< Request > request,
-                                      const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                      const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                      
-                std::error_code patch( const std::shared_ptr< Request > request,
-                                       const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                       const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                       const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                       
-                std::error_code patch( const std::shared_ptr< Request > request,
-                                       const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                       const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                       
-                std::error_code head( const std::shared_ptr< Request > request,
-                                      const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                      const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                      const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                      
-                std::error_code head( const std::shared_ptr< Request > request,
-                                      const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                      const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                      
-                std::error_code destroy( const std::shared_ptr< Request > request,
-                                         const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                         const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                         const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                         
-                std::error_code destroy( const std::shared_ptr< Request > request,
-                                         const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                         const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                         
-                std::error_code options( const std::shared_ptr< Request > request,
-                                         const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                         const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                         const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                         
-                std::error_code options( const std::shared_ptr< Request > request,
-                                         const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                         const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                         
-                std::error_code trace( const std::shared_ptr< Request > request,
-                                       const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                       const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                       const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                       
-                std::error_code trace( const std::shared_ptr< Request > request,
-                                       const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                       const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
-                                       
-                std::error_code send( const std::shared_ptr< Request > request,
-                                      const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                      const std::function< std::error_code ( const std::shared_ptr< Request >, const std::shared_ptr< network::Adaptor > ) > upload_handler = nullptr,
-                                      const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
+                std::error_code open( const std::string& address,
+                                      const uint16_t port,
+                                      const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code error ) > completion_handler );
                                       
                 std::error_code send( const std::shared_ptr< Request > request,
-                                      const std::function< std::error_code ( const std::shared_ptr< const Response > ) > response_handler,
-                                      const std::function< std::error_code ( const std::shared_ptr< Response >, const std::shared_ptr< network::Adaptor > ) > download_handler = nullptr );
+                                      const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code error ) > completion_handler );
                                       
+                std::error_code yield( const std::string data,
+                                       const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code error ) > completion_handler );
+                                       
+                std::error_code yield( const core::Bytes data,
+                                       const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code error ) > completion_handler );
+                                       
+                std::error_code fetch( const std::size_t length,
+                                       const std::function< std::error_code ( const std::shared_ptr< Session >, const core::Bytes, const std::error_code error ) > completion_handler );
+                                       
+                std::error_code fetch( const std::string delimiter,
+                                       const std::function< std::error_code ( const std::shared_ptr< Session >, const core::Bytes, const std::error_code error ) > completion_handler );
+                                       
                 std::error_code observe( const std::shared_ptr< Request > request,
                                          const std::function< std::chrono::milliseconds ( const std::shared_ptr< const Response > ) > event_handler,
-                                         const std::function< std::error_code ( const std::shared_ptr< const Response > ) > reaction_handler );
-                                         
+                                         const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code error ) > reaction_handler );
                 //Getters
                 std::shared_ptr< Settings > get_settings( void ) const;
                 
@@ -180,6 +114,8 @@ namespace corvusoft
                 std::function< std::error_code ( const std::shared_ptr< const Request >, const std::shared_ptr< const Response >, const std::error_code ) > get_error_handler( void ) const;
                 
                 //Setters
+                //void set_data
+                
                 void set_settings( const std::shared_ptr< Settings >& value );
                 
                 void set_runloop( const std::shared_ptr< core::RunLoop >& value );
@@ -199,9 +135,6 @@ namespace corvusoft
                 void set_connection_timeout_handler( const std::function< std::error_code ( const std::shared_ptr< const Request > ) >& value );
                 
                 void set_error_handler( const std::function< std::error_code ( const std::shared_ptr< const Request >, const std::shared_ptr< const Response >, const std::error_code ) >& value );
-                
-                //void set_open_handler;
-                //void set_close_handler;
                 
                 //Operators
                 
