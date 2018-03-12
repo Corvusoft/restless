@@ -1,4 +1,4 @@
-find_path( catch_INCLUDE catch.hpp HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/core/dependency/catch/include" )
+find_path( catch_INCLUDE catch.hpp HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/runloop/dependency/core/dependency/catch/include" )
 
 if ( catch_INCLUDE )
     set( CATCH_FOUND TRUE )

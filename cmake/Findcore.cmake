@@ -1,6 +1,6 @@
-find_library( core_STATIC_LIBRARY libcore.a HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/core/distribution/library" )
-find_library( core_SHARED_LIBRARY NAMES libcore.so libcore.dylib HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/core/distribution/library" )
-find_path( core_INCLUDE "corvusoft/core/settings.hpp" HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/core/distribution/include" )
+find_library( core_STATIC_LIBRARY libcore.a HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/runloop/dependency/core/distribution/library" )
+find_library( core_SHARED_LIBRARY NAMES libcore.so libcore.dylib HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/runloop/dependency/core/distribution/library" )
+find_path( core_INCLUDE "corvusoft/core/settings.hpp" HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/runloop/dependency/core/distribution/include" )
 
 if ( core_INCLUDE AND core_STATIC_LIBRARY AND core_SHARED_LIBRARY )
     set( CORE_FOUND TRUE )
