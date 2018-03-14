@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 3.1.0 FATAL_ERROR )
 
 project( "restless" VERSION 2.0.0 LANGUAGES CXX )
-message( "Copyright 2013-2017, Corvusoft Ltd, All Rights Reserved." )
+message( "Copyright 2013-2018, Corvusoft Ltd, All Rights Reserved." )
 
 #
 # Dependencies

@@ -58,7 +58,7 @@ More in-depth examples can be found [here](https://github.com/corvusoft/restless
 License
 -------
 
-&copy; 2013-2016 Corvusoft Limited, United Kingdom. All rights reserved.
+&copy; 2013-2018 Corvusoft Limited, United Kingdom. All rights reserved.
 
 The Restless framework is dual licensed; See [LICENSE](LICENSE) for full details.
 
