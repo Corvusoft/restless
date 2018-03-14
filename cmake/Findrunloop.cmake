@@ -1,6 +1,6 @@
-find_library( runloop_STATIC_LIBRARY librunloop.a HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/runloop/distribution/library" )
-find_library( runloop_SHARED_LIBRARY NAMES librunloop.so librunloop.dylib HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/runloop/distribution/library" )
-find_path( runloop_INCLUDE "corvusoft/core/run_loop.hpp" HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/dependency/network/dependency/runloop/distribution/include" )
+find_library( runloop_STATIC_LIBRARY librunloop.a HINTS "${PROJECT_SOURCE_DIR}/dependency/network/dependency/runloop/distribution/library" )
+find_library( runloop_SHARED_LIBRARY NAMES librunloop.so librunloop.dylib HINTS "${PROJECT_SOURCE_DIR}/dependency/network/dependency/runloop/distribution/library" )
+find_path( runloop_INCLUDE "corvusoft/core/run_loop.hpp" HINTS "${PROJECT_SOURCE_DIR}/dependency/network/dependency/runloop/distribution/include" )
 
 if ( runloop_INCLUDE AND runloop_STATIC_LIBRARY AND runloop_SHARED_LIBRARY )
     set( RUNLOOP_FOUND TRUE )

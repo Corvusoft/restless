@@ -1,3 +1,6 @@
 [submodule "dependency/protocol"]
 	path = dependency/protocol
 	url = https://github.com/corvusoft/protocol
+[submodule "dependency/network"]
+	path = dependency/network
+	url = https://github.com/Corvusoft/network
