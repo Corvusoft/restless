@@ -6,7 +6,6 @@
 #include <corvusoft/restless/session.hpp>
 #include <corvusoft/restless/request.hpp>
 #include <corvusoft/restless/response.hpp>
-#include <corvusoft/restless/settings.hpp>
 
 //External Includes
 #include <catch.hpp>
@@ -20,40 +19,49 @@ using std::make_shared;
 using corvusoft::restless::Session;
 using corvusoft::restless::Request;
 using corvusoft::restless::Response;
-using corvusoft::restless::Settings;
 
 //External Namespaces
 
+#include <thread>
+
 TEST_CASE( "Request/Response cycle." )
 {
-    auto settings = make_shared< Settings >( );
-    
-    auto request = make_shared< Request >( );
-    request->set_method( "GET" );
-    
     auto session = make_shared< Session >( );
-    session->open( "178.62.20.193", 80, [ ]( const shared_ptr< Session >, const error_code error )
+    session->open( "216.58.203.99", 80, [ ]( auto session, auto status )
     {
-    
-        //session->send( request, const function< error_code ( const shared_ptr< const Response > ) > response_handler )
+        fprintf( stderr, "Open called.\n" );
         
-        return error_code( ); //failure kills session.
+        REQUIRE( status == error_code( ) );
+        REQUIRE( session not_eq nullptr );
+        
+        auto request = make_shared< Request >( );
+        request->set_method( "GET" );
+        request->set_path( "/" );
+        
+        session->send( request, [ ] ( auto session, auto response, auto status )
+        {
+            fprintf( stderr, "Send called.\n" );
+            
+            REQUIRE( status == error_code( ) );
+            REQUIRE( session not_eq nullptr );
+            REQUIRE( response not_eq nullptr );
+            
+            REQUIRE( response->get_status_code( ) == 200 );
+            
+            //fprintf( stderr, "Response: %.*s\n", response->get_body( ).size( ), response->get_body( ).data( ) );
+            return error_code( );
+        } );
+        
+        return error_code( );
     } );
     
+    std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
     
-    // auto adaptor = MockAdaptor::create( );
-    // adaptor->set_response( response );
-    // adaptor->set_open_port_expectation( "111.222.333.444" );
-    // adaptor->set_open_address_expectation( "111.222.333.444" );
+    session->close( [ ]( auto session, auto status )
+    {
+        fprintf( stderr, "Closed called.\n" );
+        return error_code( );
+    } );
     
-    // auto session = make_shared< Session >( );
-    // session->set_network( adaptor );
-    
-    // auto error = session->open( "111.222.333.444", 8090 );
-    // if ( error ) ASSERTFAIL;
-    
-    // error = session->send( request, response_handler );
-    // if ( error ) ASSERTFAIL;
-    
-    // runloop->wait( );
+    std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
 }

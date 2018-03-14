@@ -38,11 +38,6 @@ namespace corvusoft
         class Adaptor;
     }
     
-    namespace protocol
-    {
-        class Protocol;
-    }
-    
     namespace restless
     {
         //Forward Declarations
@@ -55,7 +50,7 @@ namespace corvusoft
             struct SessionImpl;
         }
         
-        class Session
+        class Session : public std::enable_shared_from_this< Session >
         {
             public:
                 //Friends
@@ -65,65 +60,52 @@ namespace corvusoft
                 //Constructors
                 Session( void );
                 
+                Session( const std::shared_ptr< network::Adaptor > adaptor, const std::shared_ptr< core::RunLoop > runloop );
+                
                 virtual ~Session( void );
                 
                 //Functionality
-                bool is_open( void ) const;
+                void close( const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
                 
-                bool is_closed( void ) const;
+                void open( const std::shared_ptr< Settings > settings,
+                           const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
+                           
+                void open( const std::string& address,
+                           const std::uint16_t port,
+                           const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
+                           
+                void send( const std::shared_ptr< Request > request,
+                           const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
+                           
+                void send( const std::shared_ptr< Request > request,
+                           const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > completion_handler );
+                           
+                void receive( const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > completion_handler );
                 
-                std::error_code close( const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code error ) > completion_handler );
-                
-                std::error_code open( const std::string& address,
-                                      const uint16_t port,
-                                      const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code error ) > completion_handler );
-                                      
-                std::error_code send( const std::shared_ptr< Request > request,
-                                      const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code error ) > completion_handler );
-                                      
-                std::error_code yield( const std::string data,
-                                       const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code error ) > completion_handler );
-                                       
-                std::error_code yield( const core::Bytes data,
-                                       const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code error ) > completion_handler );
-                                       
-                std::error_code fetch( const std::size_t length,
-                                       const std::function< std::error_code ( const std::shared_ptr< Session >, const core::Bytes, const std::error_code error ) > completion_handler );
-                                       
-                std::error_code fetch( const std::string delimiter,
-                                       const std::function< std::error_code ( const std::shared_ptr< Session >, const core::Bytes, const std::error_code error ) > completion_handler );
-                                       
-                std::error_code observe( const std::shared_ptr< Request > request,
-                                         const std::function< std::chrono::milliseconds ( const std::shared_ptr< const Response > ) > event_handler,
-                                         const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code error ) > reaction_handler );
+                void yield( const std::string data,
+                            const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
+                            
+                void yield( const core::Bytes data,
+                            const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
+                            
+                void fetch( const std::size_t length,
+                            const std::function< std::error_code ( const std::shared_ptr< Session >, const core::Bytes, const std::error_code ) > completion_handler );
+                            
+                void fetch( const std::string delimiter,
+                            const std::function< std::error_code ( const std::shared_ptr< Session >, const core::Bytes, const std::error_code ) > completion_handler );
+                            
+                void observe( const std::shared_ptr< Request > request,
+                              const std::function< std::chrono::milliseconds ( const std::shared_ptr< const Response > ) > event_handler,
+                              const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > reaction_handler );
+                              
                 //Getters
                 std::shared_ptr< Settings > get_settings( void ) const;
-                
-                std::shared_ptr< core::RunLoop > get_runloop( void ) const;
-                
-                std::shared_ptr< network::Adaptor > get_adaptor( void ) const;
-                
-                std::shared_ptr< protocol::Protocol > get_protocol( void ) const;
                 
                 std::multimap< std::string, std::string > get_default_headers( void ) const;
                 
                 std::function< std::error_code ( const int, const std::string ) > get_log_handler( void ) const;
                 
-                std::function< std::error_code ( const std::shared_ptr< const Request > ) > get_connection_timeout_handler( void ) const;
-                
-                std::function< std::error_code ( const std::shared_ptr< const Request >, const std::shared_ptr< const Response >, const std::error_code ) > get_error_handler( void ) const;
-                
                 //Setters
-                //void set_data
-                
-                void set_settings( const std::shared_ptr< Settings >& value );
-                
-                void set_runloop( const std::shared_ptr< core::RunLoop >& value );
-                
-                void set_adaptor( const std::shared_ptr< network::Adaptor >& value );
-                
-                void set_protocol( const std::shared_ptr< protocol::Protocol >& value );
-                
                 void set_default_header( const std::string& name, const std::string& value );
                 
                 void set_default_header( const std::string& name, const std::function< std::string ( void ) >& value );
@@ -131,10 +113,6 @@ namespace corvusoft
                 void set_default_headers( const std::multimap< std::string, std::string >& values );
                 
                 void set_log_handler( const std::function< std::error_code ( const int, const std::string ) >& value );
-                
-                void set_connection_timeout_handler( const std::function< std::error_code ( const std::shared_ptr< const Request > ) >& value );
-                
-                void set_error_handler( const std::function< std::error_code ( const std::shared_ptr< const Request >, const std::shared_ptr< const Response >, const std::error_code ) >& value );
                 
                 //Operators
                 

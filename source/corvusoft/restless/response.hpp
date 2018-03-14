@@ -7,6 +7,7 @@
 
 //System Includes
 #include <map>
+#include <memory>
 #include <string>
 #include <sstream>
 #include <functional>
@@ -16,7 +17,6 @@
 
 //External Includes
 #include <corvusoft/core/byte.hpp>
-#include <corvusoft/protocol/message.hpp>
 
 //System Namespaces
 
@@ -31,8 +31,12 @@ namespace corvusoft
     namespace restless
     {
         //Forward Declarations
+        namespace detail
+        {
+            struct ResponseImpl;
+        }
         
-        class Response final : public protocol::Message
+        class Response final
         {
             public:
                 //Friends
@@ -52,16 +56,16 @@ namespace corvusoft
                 
                 int get_status_code( void ) const;
                 
-                std::string get_status_message( const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
+                std::string get_status_message( void ) const;
                 
-                std::string get_protocol( const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
+                std::string get_protocol( void ) const;
                 
-                core::Bytes get_body( const std::function< core::Bytes ( const core::Bytes& ) >& transform = nullptr ) const;
+                core::Bytes get_body( void ) const;
                 
                 template< typename Type, typename std::enable_if< std::is_arithmetic< Type >::value, Type >::type = 0 >
                 Type get_header( const std::string& name, const Type default_value ) const
                 {
-                    std::istringstream stream( core::make_string( get( name ) ) );
+                    std::istringstream stream( get_header( name ) );
                     
                     Type parameter;
                     stream >> parameter;
@@ -69,9 +73,7 @@ namespace corvusoft
                     return ( stream.fail( ) ) ? default_value : parameter;
                 }
                 
-                std::string get_header( const std::string& name, const std::string& default_value ) const;
-                
-                std::string get_header( const std::string& name, const std::function< std::string ( const std::string& ) >& transform = nullptr ) const;
+                std::string get_header( const std::string& name, const std::string& default_value = "" ) const;
                 
                 std::multimap< std::string, std::string > get_headers( const std::string& name = "" ) const;
                 
@@ -131,6 +133,7 @@ namespace corvusoft
                 Response& operator =( const Response& value ) = delete;
                 
                 //Properties
+                std::unique_ptr< detail::ResponseImpl > m_pimpl;
         };
     }
 }

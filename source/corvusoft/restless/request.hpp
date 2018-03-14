@@ -8,12 +8,12 @@
 //System Includes
 #include <map>
 #include <string>
+#include <memory>
 
 //Project Includes
 
 //External Includes
 #include <corvusoft/core/byte.hpp>
-#include <corvusoft/protocol/message.hpp>
 
 //System Namespaces
 
@@ -28,8 +28,12 @@ namespace corvusoft
     namespace restless
     {
         //Forward Declarations
+        namespace detail
+        {
+            struct RequestImpl;
+        }
         
-        class Request final : public protocol::Message
+        class Request final
         {
             public:
                 //Friends
@@ -122,6 +126,7 @@ namespace corvusoft
                 Request& operator =( const Request& value ) = delete;
                 
                 //Properties
+                std::unique_ptr< detail::RequestImpl > m_pimpl;
         };
     }
 }

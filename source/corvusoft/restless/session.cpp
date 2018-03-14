@@ -13,15 +13,12 @@
 #include "corvusoft/restless/detail/session_impl.hpp"
 
 //External Includes
-#include <corvusoft/core/run_loop.hpp>
-#include <corvusoft/core/log_level.hpp>
-#include <corvusoft/protocol/http.hpp>
-#include <corvusoft/protocol/protocol.hpp>
-#include <corvusoft/network/adaptor.hpp>
-#include <corvusoft/network/tcpip_adaptor.hpp> //why not just call it tcpip.hpp?
 
 //System Namespaces
+using std::bind;
 using std::string;
+using std::size_t;
+using std::uint16_t;
 using std::function;
 using std::multimap;
 using std::error_code;
@@ -30,17 +27,18 @@ using std::unique_ptr;
 using std::make_shared;
 using std::make_error_code;
 using std::chrono::milliseconds;
+using std::dynamic_pointer_cast;
 
 //Project Namespaces
 using corvusoft::restless::detail::SessionImpl;
 
 //External Namespaces
 using corvusoft::core::Bytes;
+using corvusoft::core::make_bytes;
 using corvusoft::core::RunLoop;
-using corvusoft::protocol::HTTP;
-using corvusoft::protocol::Protocol;
+using corvusoft::network::TCPIP;
 using corvusoft::network::Adaptor;
-using corvusoft::network::TCPIPAdaptor; //rename TCPIP
+using corvusoft::protocol::Frame;
 
 namespace corvusoft
 {
@@ -48,7 +46,15 @@ namespace corvusoft
     {
         Session::Session( void ) : m_pimpl( new SessionImpl )
         {
-            return;
+            m_pimpl->runloop = make_shared< RunLoop >( );
+            m_pimpl->adaptor = make_shared< TCPIP >( m_pimpl->runloop );
+            m_pimpl->runloop->start( );
+        }
+        
+        Session::Session( const shared_ptr< Adaptor > adaptor, const shared_ptr< RunLoop > runloop ) : m_pimpl( new SessionImpl )
+        {
+            m_pimpl->adaptor = adaptor;
+            m_pimpl->runloop = runloop;
         }
         
         Session::~Session( void )
@@ -56,103 +62,125 @@ namespace corvusoft
             return;
         }
         
-        bool Session::is_open( void ) const
+        void Session::close( const function< error_code ( const shared_ptr< Session >, const error_code status ) > completion_handler )
         {
-            //has pending requests
-            return false;
-        }
-        
-        bool Session::is_closed( void ) const
-        {
-            return true;
-        }
-        
-        error_code Session::close( const function< error_code ( const shared_ptr< Session >, const error_code error ) > completion_handler )
-        {
-            return error_code( );
-        }
-        
-        error_code Session::open( const string& address, const uint16_t port, const function< error_code ( const shared_ptr< Session >, const error_code error ) > completion_handler )
-        {
-            if ( not m_pimpl->runloop  ) m_pimpl->runloop = make_shared< RunLoop >( );
-            if ( not m_pimpl->adaptor  ) m_pimpl->adaptor = TCPIPAdaptor::create( ); //remove the creat method it can't be force across implementations.
-            if ( not m_pimpl->protocol ) m_pimpl->protocol = make_shared< HTTP >( );
-            if ( not m_pimpl->settings ) m_pimpl->settings = make_shared< Settings >( );
+            if ( completion_handler == nullptr ) return;
             
-            const auto settings = make_shared< Settings >( ); //why not just m_pimpl->settings?
-            settings->set( "port", port );
-            settings->set( "address", address ); //provide Hostname::to_address( hostname ); functionality in network. i.e this might be /dev/sda0
+            m_pimpl->adaptor->close( [ this, completion_handler ]( auto adaptor, auto status )
+            {
+                if ( status ) return completion_handler( shared_from_this( ), status );
+                
+                status = m_pimpl->adaptor->teardown( );
+                return completion_handler( shared_from_this( ), status );
+            } );
             
-            //m_pimpl->protocol->setup( ); //don't forget teardown.
+            m_pimpl->runloop->wait( );
+        }
+        
+        void Session::open( const shared_ptr< Settings > settings, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
+        {
+            if ( completion_handler == nullptr ) return;
             
-            auto error = m_pimpl->adaptor->setup( m_pimpl->runloop );
-            if ( error ) return error;
+            m_pimpl->settings = settings;
+            auto status = m_pimpl->adaptor->setup( m_pimpl->settings );
+            if ( status )
+                completion_handler( shared_from_this( ), status );
+            else
+                m_pimpl->adaptor->open( m_pimpl->settings, [ this, completion_handler ]( auto, auto status )
+            {
+                return completion_handler( shared_from_this( ), status );
+            } );
+        }
+        
+        void Session::open( const string& address, const uint16_t port, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
+        {
+            if ( m_pimpl->settings == nullptr )
+                m_pimpl->settings = make_shared< Settings >( );
+            m_pimpl->settings->set_port( port );
+            m_pimpl->settings->set_address( address );
             
-            error = m_pimpl->adaptor->open( settings );
-            if ( error ) return error;
+            open( m_pimpl->settings, completion_handler );
+        }
+        
+        void Session::send( const shared_ptr< Request > request, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
+        {
+            if ( completion_handler == nullptr ) return;
             
-            return error_code( ); //m_pimpl->runloop->start( );
-            //we need to review the adaptor API, if you must call runloop->start
-            //then it should a mandatory DI element.
+            auto data = m_pimpl->disassemble( request );
+            m_pimpl->adaptor->produce( data, [ this, completion_handler ]( auto, auto, auto status )
+            {
+                return completion_handler( shared_from_this( ), status );
+            } );
         }
         
-        error_code Session::send( const shared_ptr< Request > request,
-                                  const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response > response, const error_code error ) > completion_handler )
+        void Session::send( const shared_ptr< Request > request, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > completion_handler )
         {
-            //return ( error ) ? m_pimpl->error_handler( ) : error_code( );
-            return error_code( );
+            if ( completion_handler == nullptr ) return;
+            
+            auto data = m_pimpl->disassemble( request );
+            fprintf( stderr, "Sending: %.*s\n", data.size( ), data.data( ) );
+            m_pimpl->adaptor->produce( data, [ this, completion_handler ]( auto, auto, auto status )
+            {
+                if ( status ) return completion_handler( shared_from_this( ), nullptr, status );
+                
+                receive( completion_handler );
+                return status;
+            } );
         }
         
-        error_code yield( const string data,
-                          const function< error_code ( const shared_ptr< Session >, const error_code error ) > completion_handler )
+        void Session::receive( const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > completion_handler )
         {
-            return error_code( );
+            if ( completion_handler == nullptr ) return;
+            
+            m_pimpl->adaptor->consume( [ this, completion_handler ]( auto, auto data, auto status )
+            {
+                //fprintf( stderr, "called receive: %.*s\n", data.size( ), data.data( ));
+                if ( status ) return completion_handler( shared_from_this( ), nullptr, status );
+                fprintf( stderr, "called receive: %.*s\n", data.size( ), data.data( ) );
+                auto response = make_shared< Response >( );//m_pimpl->assemble( data );
+                if ( not m_pimpl->builder->is_finalised( ) )
+                    return make_error_code( std::errc::resource_unavailable_try_again );
+                    
+                if ( response == nullptr ) return completion_handler( shared_from_this( ), nullptr, make_error_code( std::errc::bad_message ) );
+                
+                return completion_handler( shared_from_this( ), response, status );
+            } );
         }
         
-        error_code yield( const Bytes data,
-                          const function< error_code ( const shared_ptr< Session >, const error_code error ) > completion_handler )
+        void Session::yield( const string data, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
         {
-            return error_code( );
+            if ( completion_handler == nullptr ) return;
+            yield( make_bytes( data ), completion_handler );
         }
         
-        error_code fetch( const size_t length,
-                          const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code error ) > completion_handler )
+        void Session::yield( const Bytes data, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
         {
-            return error_code( );
+            if ( completion_handler == nullptr ) return;
+            
+            m_pimpl->adaptor->produce( data, [ this, completion_handler ]( auto, auto, auto status )
+            {
+                return completion_handler( shared_from_this( ), status );
+            } );
         }
         
-        error_code fetch( const string delimiter,
-                          const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code error ) > completion_handler )
+        void Session::fetch( const size_t length, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
         {
-            return error_code( );
+            if ( completion_handler == nullptr ) return;
+            // adaptor->consume( [ this, completion_handler ]( auto adaptor, auto data, auto status ) {
+            //     auto frame = frame_builder->assemble( data );
+            //     //if finalised ... else consume.
+            //     completion_handler( shared_from_this( ), response, status );
+            // } );
         }
         
-        error_code Session::observe( const shared_ptr< Request > request,
-                                     const function< milliseconds ( const shared_ptr< const Response > ) > event_handler,
-                                     const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response > response, const error_code error ) > reaction_handler )
+        void Session::fetch( const string delimiter, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
+        {
+            if ( completion_handler == nullptr ) return;
+        }
+        
+        void Session::observe( const shared_ptr< Request > request, const function< milliseconds ( const shared_ptr< const Response > ) > event_handler, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > reaction_handler )
         {
             //user has to reschedule itself.
-            return error_code( );
-        }
-        
-        shared_ptr< Settings > Session::get_settings( void ) const
-        {
-            return m_pimpl->settings;
-        }
-        
-        shared_ptr< RunLoop > Session::get_runloop( void ) const
-        {
-            return m_pimpl->runloop;
-        }
-        
-        shared_ptr< Adaptor > Session::get_adaptor( void ) const
-        {
-            return m_pimpl->adaptor;
-        }
-        
-        shared_ptr< Protocol > Session::get_protocol( void ) const
-        {
-            return m_pimpl->protocol;
         }
         
         multimap< string, string > Session::get_default_headers( void ) const
@@ -168,36 +196,6 @@ namespace corvusoft
         function< error_code ( const int, const string ) > Session::get_log_handler( void ) const
         {
             return m_pimpl->log_handler;
-        }
-        
-        function< error_code ( const shared_ptr< const Request > ) > Session::get_connection_timeout_handler( void ) const
-        {
-            return m_pimpl->connection_timeout_handler;
-        }
-        
-        function< error_code ( const shared_ptr< const Request >, const shared_ptr< const Response >, const error_code ) > Session::get_error_handler( void ) const
-        {
-            return m_pimpl->error_handler;
-        }
-        
-        void Session::set_settings( const shared_ptr< Settings >& value )
-        {
-            m_pimpl->settings = value;
-        }
-        
-        void Session::set_runloop( const shared_ptr< RunLoop >& value )
-        {
-            m_pimpl->runloop = value;
-        }
-        
-        void Session::set_adaptor( const shared_ptr< Adaptor >& value )
-        {
-            m_pimpl->adaptor = value;
-        }
-        
-        void Session::set_protocol( const shared_ptr< Protocol >& value )
-        {
-            m_pimpl->protocol = value;
         }
         
         void Session::set_default_header( const string& name, const string& value )
@@ -222,16 +220,6 @@ namespace corvusoft
         void Session::set_log_handler( const function< error_code ( const int, const string ) >& value )
         {
             m_pimpl->log_handler = value;
-        }
-        
-        void Session::set_connection_timeout_handler( const function< error_code ( const shared_ptr< const Request > ) >& value )
-        {
-            m_pimpl->connection_timeout_handler = value;
-        }
-        
-        void Session::set_error_handler( const function< error_code ( const shared_ptr< const Request >, const shared_ptr< const Response >, const error_code ) >& value )
-        {
-            m_pimpl->error_handler = value;
         }
     }
 }

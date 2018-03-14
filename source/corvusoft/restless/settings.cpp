@@ -11,6 +11,8 @@
 
 //System Namespaces
 using std::string;
+using std::uint16_t;
+using std::to_string;
 using std::chrono::milliseconds;
 
 //Project Namespaces
@@ -32,6 +34,17 @@ namespace corvusoft
             return;
         }
         
+        uint16_t Settings::get_port( void ) const
+        {
+            return 80;
+            //return get( "port" );
+        }
+        
+        string Settings::get_address( void ) const
+        {
+            return get( "address" );
+        }
+        
         string Settings::get_bind_address( void ) const
         {
             return get( "bind:address" );
@@ -41,6 +54,16 @@ namespace corvusoft
         {
             static const auto default_value = milliseconds( 10000 ).count( );
             return milliseconds( get( "connection:timeout", default_value ) );
+        }
+        
+        void Settings::set_port( const uint16_t value )
+        {
+            set( "port", to_string( value ) );
+        }
+        
+        void Settings::set_address( const string& value )
+        {
+            set( "address", value );
         }
         
         void Settings::set_bind_address( const string& value )

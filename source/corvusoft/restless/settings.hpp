@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <chrono>
+#include <cstdint>
 
 //Project Includes
 
@@ -44,11 +45,19 @@ namespace corvusoft
                 //Functionality
                 
                 //Getters
+                std::uint16_t get_port( void ) const;
+                
+                std::string get_address( void ) const;
+                
                 std::string get_bind_address( void ) const;
                 
                 std::chrono::milliseconds get_connection_timeout( void ) const;
                 
                 //Setters
+                void set_port( const std::uint16_t value );
+                
+                void set_address( const std::string& value );
+                
                 void set_bind_address( const std::string& value );
                 
                 void set_connection_timeout( const std::chrono::milliseconds& value );
