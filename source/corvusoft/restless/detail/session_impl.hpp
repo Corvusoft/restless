@@ -11,6 +11,8 @@
 #include <string>
 #include <clocale>
 #include <cstdlib>
+#include <sstream>
+#include <iomanip>
 #include <stdexcept>
 #include <functional>
 #include <system_error>
@@ -21,8 +23,7 @@
 #include <corvusoft/core/run_loop.hpp>
 #include <corvusoft/core/log_level.hpp>
 #include <corvusoft/network/tcpip.hpp>
-#include <corvusoft/network/adaptor.hpp>
-#include <corvusoft/protocol/frame.hpp>
+#include <corvusoft/protocol/http_frame.hpp>
 #include <corvusoft/protocol/http_frame_builder.hpp>
 
 //System Namespaces
@@ -52,86 +53,100 @@ namespace corvusoft
                 
                 std::shared_ptr< network::Adaptor > adaptor = nullptr;
                 
-                std::shared_ptr< protocol::HTTPFrameBuilder > builder = std::make_shared< protocol::HTTPFrameBuilder >( );
-                
                 std::multimap< std::string, std::string > default_headers { };
                 
                 std::multimap< std::string, const std::function< std::string ( void ) > > computed_headers { };
                 
                 std::function< std::error_code ( const int, const std::string ) > log_handler = nullptr;
                 
-                const std::shared_ptr< const Response > assemble( const core::Bytes data )
+                const std::shared_ptr< const Response > assemble( std::shared_ptr< protocol::Frame > value )
                 {
-                    auto frame = builder->assemble( data );
+                    auto frame = std::dynamic_pointer_cast< protocol::HTTPFrame >( value );
+                    if ( frame == nullptr ) return nullptr;
+                    
                     auto response = std::make_shared< Response >( );
+                    response->set_body( frame->get_body( ) );
+                    response->set_version( parse_version( frame->get_version( ) ) );
+                    response->set_protocol( core::make_string( frame->get_protocol( ) ) );
+                    response->set_status_code( parse_status_code( frame->get_status_code( ) ) );
+                    response->set_status_message( core::make_string( frame->get_status_message( ) ) );
                     
-                    auto iterator = frame->meta.find( "protocol" );
-                    if ( iterator not_eq frame->meta.end( ) )
-                        response->set_protocol( core::make_string( iterator->second ) );
-                    frame->meta.erase( "protocol" );
-                    
-                    try
-                    {
-                        iterator = frame->meta.find( "version" );
-                        if ( iterator not_eq frame->meta.end( ) )
-                            response->set_version( std::stod( core::make_string( iterator->second ) ) );
-                        frame->meta.erase( "version" );
-                        
-                        iterator = frame->meta.find( "status" );
-                        if ( iterator not_eq frame->meta.end( ) )
-                            response->set_status_code( std::stoi( core::make_string( iterator->second ) ) );
-                        frame->meta.erase( "status" );
-                    }
-                    catch ( const std::invalid_argument )
-                    {
-                        return nullptr;
-                    }
-                    catch ( const std::out_of_range )
-                    {
-                        return nullptr;
-                    }
-                    
-                    iterator = frame->meta.find( "message" );
-                    if ( iterator not_eq frame->meta.end( ) )
-                        response->set_status_message( core::make_string( iterator->second ) );
-                    frame->meta.erase( "message" );
-                    
-                    for ( auto header : frame->meta )
+                    for ( auto header : frame->get_headers( ) )
                         response->set_header( header.first, core::make_string( header.second ) );
                         
-                    iterator = frame->data.find( "body" );
-                    if ( iterator not_eq frame->data.end( ) )
-                        response->set_body( iterator->second );
+                    return response;
                 }
                 
                 const core::Bytes disassemble( const std::shared_ptr< const Request > request )
                 {
-                    auto frame = std::make_shared< protocol::Frame >( );
-                    frame->meta.emplace( "method", core::make_bytes( request->get_method( ) ) );
-                    
-                    auto parameters = request->get_query_parameters( );
-                    auto path = ( parameters.empty( ) ) ? request->get_path( ) : request->get_path( ) + "?";
-                    for ( auto parameter : parameters )
-                        path += parameter.first + "=" + parameter.second + "&";
-                    if ( not parameters.empty( ) ) path.pop_back( );
-                    frame->meta.emplace( "path", core::make_bytes( path ) );
-                    
-                    //frame->meta.emplace( "protocol", core::make_bytes( request->get_protocol( ) ) );
-                    frame->meta.emplace( "protocol", core::make_bytes( "HTTP" ) );
-                    
-                    // char* locale = strdup( std::setlocale( LC_NUMERIC, nullptr ) );
-                    // std::setlocale( LC_NUMERIC, "C" );
-                    // frame->meta.emplace( "version", core::make_bytes( std::to_string( request->get_version( ) ) ) );
-                    frame->meta.emplace( "version", core::make_bytes( "1.1" ) );
-                    // std::setlocale( LC_NUMERIC, locale );
-                    // std::free( locale );
+                    auto frame = std::make_shared< protocol::HTTPFrame >( );
+                    frame->set_path( compose_path( request ) );
+                    frame->set_method( request->get_method( ) );
+                    frame->set_protocol( request->get_protocol( ) );
+                    frame->set_version( compose_version( request->get_version( ) ) );
                     
                     for ( auto header : request->get_headers( ) )
-                        frame->meta.emplace( header.first, core::make_bytes( header.second ) );
+                        frame->set_header( header.first, header.second );
                         
-                    frame->data.emplace( "body", request->get_body( ) );
+                    frame->set_body( request->get_body( ) );
                     
+                    auto builder = std::make_shared< protocol::HTTPFrameBuilder >( );
                     return builder->disassemble( frame );
+                }
+                
+                double parse_version( const core::Bytes& value )
+                try
+                {
+                    return std::stod( core::make_string( value ) );
+                }
+                catch ( const std::invalid_argument )
+                {
+                    return 0;
+                }
+                catch ( const std::out_of_range )
+                {
+                    return 0;
+                }
+                
+                int parse_status_code( const core::Bytes& value )
+                try
+                {
+                    fprintf( stderr, "status code '%.*s'\n", value.size( ), value.data() );
+                    return std::stoi( core::make_string( value ) );
+                }
+                catch ( const std::invalid_argument )
+                {
+                    return 0;
+                }
+                catch ( const std::out_of_range )
+                {
+                    return 0;
+                }
+                
+                std::string compose_path( const std::shared_ptr< const Request > request )
+                {
+                    auto parameters = request->get_query_parameters( );
+                    if ( parameters.empty( ) ) return request->get_path( );
+                    
+                    auto path = request->get_path( ) + "?";
+                    for ( auto parameter : parameters )
+                        path += parameter.first + "=" + parameter.second + "&";
+                        
+                    path.pop_back( );
+                    return path;
+                }
+                
+                std::string compose_version( const double value )
+                {
+                    auto locale = setlocale( LC_NUMERIC, nullptr );
+                    setlocale( LC_NUMERIC, "C" );
+                    
+                    std::ostringstream stream;
+                    stream << std::setprecision( 2 ) << value;
+                    auto version = stream.str( );
+                    
+                    setlocale( LC_NUMERIC, locale );
+                    return version;
                 }
             };
         }

@@ -84,7 +84,7 @@ namespace corvusoft
                 
                 void set_status_message( const std::string& value );
                 
-                void set_protocol( const std::string& protocol );
+                void set_protocol( const std::string& value );
                 
                 void set_body( const std::string& value );
                 

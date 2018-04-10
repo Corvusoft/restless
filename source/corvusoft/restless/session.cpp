@@ -102,16 +102,16 @@ namespace corvusoft
             open( m_pimpl->settings, completion_handler );
         }
         
-        void Session::send( const shared_ptr< Request > request, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
-        {
-            if ( completion_handler == nullptr ) return;
-            
-            auto data = m_pimpl->disassemble( request );
-            m_pimpl->adaptor->produce( data, [ this, completion_handler ]( auto, auto, auto status )
-            {
-                return completion_handler( shared_from_this( ), status );
-            } );
-        }
+        // void Session::send( const shared_ptr< Request > request, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
+        // {
+        //     if ( completion_handler == nullptr ) return;
+        
+        //     auto data = m_pimpl->disassemble( request );
+        //     m_pimpl->adaptor->produce( data, [ this, completion_handler ]( auto, auto, auto status )
+        //     {
+        //         return completion_handler( shared_from_this( ), status );
+        //     } );
+        // }
         
         void Session::send( const shared_ptr< Request > request, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > completion_handler )
         {
@@ -132,17 +132,22 @@ namespace corvusoft
         {
             if ( completion_handler == nullptr ) return;
             
-            m_pimpl->adaptor->consume( [ this, completion_handler ]( auto, auto data, auto status )
+            auto builder = std::make_shared< protocol::HTTPFrameBuilder >( );
+            m_pimpl->adaptor->consume( [ this, completion_handler, builder ]( auto, auto data, auto status )
             {
-                //fprintf( stderr, "called receive: %.*s\n", data.size( ), data.data( ));
-                if ( status ) return completion_handler( shared_from_this( ), nullptr, status );
-                fprintf( stderr, "called receive: %.*s\n", data.size( ), data.data( ) );
-                auto response = make_shared< Response >( );//m_pimpl->assemble( data );
-                if ( not m_pimpl->builder->is_finalised( ) )
-                    return make_error_code( std::errc::resource_unavailable_try_again );
+                if ( status )
+                    return completion_handler( shared_from_this( ), nullptr, status );
                     
-                if ( response == nullptr ) return completion_handler( shared_from_this( ), nullptr, make_error_code( std::errc::bad_message ) );
+                fprintf( stderr, "called assemble:\n%.*s\n", data.size( ), data.data( ) );
                 
+                auto frame = builder->assemble( data );
+                if ( not builder->is_finalised( ) )
+                    return make_error_code( std::errc::resource_unavailable_try_again ); //add circuit breaker.
+                    
+                auto response = m_pimpl->assemble( frame );
+                if ( response == nullptr )
+                    return completion_handler( shared_from_this( ), nullptr, make_error_code( std::errc::bad_message ) );
+                    
                 return completion_handler( shared_from_this( ), response, status );
             } );
         }

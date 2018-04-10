@@ -27,7 +27,7 @@ using corvusoft::restless::Response;
 TEST_CASE( "Request/Response cycle." )
 {
     auto session = make_shared< Session >( );
-    session->open( "216.58.203.99", 80, [ ]( auto session, auto status )
+    session->open( "www.google.com.au", 80, [ ]( auto session, auto status )
     {
         fprintf( stderr, "Open called.\n" );
         
@@ -37,6 +37,8 @@ TEST_CASE( "Request/Response cycle." )
         auto request = make_shared< Request >( );
         request->set_method( "GET" );
         request->set_path( "/" );
+        request->set_protocol( "HTTP" );
+        request->set_version( 1.1 );
         
         session->send( request, [ ] ( auto session, auto response, auto status )
         {

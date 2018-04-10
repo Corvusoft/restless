@@ -1,6 +1,6 @@
 find_library( protocol_STATIC_LIBRARY libprotocol.a HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/distribution/library" )
 find_library( protocol_SHARED_LIBRARY NAMES libprotocol.so libprotocol.dylib HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/distribution/library" )
-find_path( protocol_INCLUDE "corvusoft/protocol/protocol.hpp" HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/distribution/include" )
+find_path( protocol_INCLUDE "corvusoft/protocol/frame.hpp" HINTS "${PROJECT_SOURCE_DIR}/dependency/protocol/distribution/include" )
 
 if ( protocol_INCLUDE AND protocol_STATIC_LIBRARY AND protocol_SHARED_LIBRARY )
     set( PROTOCOL_FOUND TRUE )
