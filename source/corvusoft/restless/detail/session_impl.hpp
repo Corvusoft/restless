@@ -39,6 +39,8 @@ namespace corvusoft
     namespace restless
     {
         //Forward Declarations
+        class Session;
+        class Response;
         class Settings;
         
         namespace detail
@@ -58,6 +60,28 @@ namespace corvusoft
                 std::multimap< std::string, const std::function< std::string ( void ) > > computed_headers { };
                 
                 std::function< std::error_code ( const int, const std::string ) > log_handler = nullptr;
+                
+                void receive( const std::shared_ptr< Session > session, const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > completion_handler )
+                {
+                    if ( completion_handler == nullptr ) return;
+                    
+                    auto builder = std::make_shared< protocol::HTTPFrameBuilder >( );
+                    adaptor->consume( [ this, session, completion_handler, builder ]( auto, auto data, auto status )
+                    {
+                        if ( status )
+                            return completion_handler( session, nullptr, status );
+                            
+                        auto frame = builder->assemble( data );
+                        if ( not builder->is_finalised( ) )
+                            return make_error_code( std::errc::resource_unavailable_try_again ); //add circuit breaker.
+                            
+                        auto response = assemble( frame );
+                        if ( response == nullptr )
+                            return completion_handler( session, nullptr, make_error_code( std::errc::bad_message ) );
+                            
+                        return completion_handler( session, response, status );
+                    } );
+                }
                 
                 const std::shared_ptr< const Response > assemble( std::shared_ptr< protocol::Frame > value )
                 {

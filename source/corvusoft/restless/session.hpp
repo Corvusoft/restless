@@ -74,16 +74,9 @@ namespace corvusoft
                            const std::uint16_t port,
                            const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
                            
-                //why?
-                //void send( const std::shared_ptr< Request > request,
-                //           const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
-                
                 void send( const std::shared_ptr< Request > request,
                            const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > completion_handler );
                            
-                //why?  remove me!
-                void receive( const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > completion_handler );
-                
                 void yield( const std::string data,
                             const std::function< std::error_code ( const std::shared_ptr< Session >, const std::error_code ) > completion_handler );
                             
