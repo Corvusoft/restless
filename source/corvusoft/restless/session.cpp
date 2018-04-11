@@ -104,10 +104,14 @@ namespace corvusoft
         
         void Session::send( const shared_ptr< Request > request, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > completion_handler )
         {
-            if ( completion_handler == nullptr ) return;
+            if ( request == nullptr or completion_handler == nullptr ) return;
+            
+            auto headers = request->get_headers( );
+            auto default_headers = get_default_headers( );
+            headers.insert( begin( default_headers ), end( default_headers ) );
+            request->set_headers( headers );
             
             auto data = m_pimpl->disassemble( request );
-            //get default headers!
             m_pimpl->adaptor->produce( data, [ this, completion_handler ]( auto, auto, auto status )
             {
                 if ( status )
