@@ -59,8 +59,6 @@ namespace corvusoft
                 
                 std::multimap< std::string, const std::function< std::string ( void ) > > computed_headers { };
                 
-                std::function< std::error_code ( const int, const std::string ) > log_handler = nullptr;
-                
                 void receive( const std::shared_ptr< Session > session, const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > completion_handler )
                 {
                     if ( completion_handler == nullptr ) return;

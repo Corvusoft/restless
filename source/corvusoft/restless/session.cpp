@@ -168,11 +168,6 @@ namespace corvusoft
             return values;
         }
         
-        function< error_code ( const int, const string ) > Session::get_log_handler( void ) const
-        {
-            return m_pimpl->log_handler;
-        }
-        
         void Session::set_default_header( const string& name, const string& value )
         {
             m_pimpl->default_headers.emplace( name, value );
@@ -190,11 +185,6 @@ namespace corvusoft
         {
             m_pimpl->computed_headers.clear( );
             m_pimpl->default_headers = values;
-        }
-        
-        void Session::set_log_handler( const function< error_code ( const int, const string ) >& value )
-        {
-            m_pimpl->log_handler = value;
         }
     }
 }

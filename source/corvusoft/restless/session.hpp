@@ -98,16 +98,12 @@ namespace corvusoft
                 
                 std::multimap< std::string, std::string > get_default_headers( void ) const;
                 
-                std::function< std::error_code ( const int, const std::string ) > get_log_handler( void ) const;
-                
                 //Setters
                 void set_default_header( const std::string& name, const std::string& value );
                 
                 void set_default_header( const std::string& name, const std::function< std::string ( void ) >& value );
                 
                 void set_default_headers( const std::multimap< std::string, std::string >& values );
-                
-                void set_log_handler( const std::function< std::error_code ( const int, const std::string ) >& value );
                 
                 //Operators
                 
