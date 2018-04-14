@@ -49,6 +49,8 @@ namespace corvusoft
             
             struct SessionImpl
             {
+                core::Bytes data { };
+                
                 std::shared_ptr< Settings > settings = nullptr;
                 
                 std::shared_ptr< core::RunLoop > runloop = nullptr;
@@ -66,10 +68,12 @@ namespace corvusoft
                     auto builder = std::make_shared< protocol::HTTPFrameBuilder >( );
                     adaptor->consume( [ this, session, completion_handler, builder ]( auto, auto data, auto status )
                     {
+                        this->data.insert( std::end( this->data ), std::begin( data ), std::end( data ) );
+                        
                         if ( status )
                             return completion_handler( session, nullptr, status );
                             
-                        auto frame = builder->assemble( data );
+                        auto frame = builder->assemble( this->data );
                         if ( not builder->is_finalised( ) )
                             return make_error_code( std::errc::resource_unavailable_try_again ); //add circuit breaker.
                             
@@ -77,6 +81,10 @@ namespace corvusoft
                         if ( response == nullptr )
                             return completion_handler( session, nullptr, make_error_code( std::errc::bad_message ) );
                             
+                        auto body = response->get_body( );
+                        auto length = this->data.size( ) - body.size( );//hmmm, danager.
+                        this->data.erase( std::begin( this->data ), std::begin( this->data ) + length );
+                        
                         return completion_handler( session, response, status );
                     } );
                 }
@@ -133,7 +141,6 @@ namespace corvusoft
                 int parse_status_code( const core::Bytes& value )
                 try
                 {
-                    fprintf( stderr, "status code '%.*s'\n", value.size( ), value.data() );
                     return std::stoi( core::make_string( value ) );
                 }
                 catch ( const std::invalid_argument )
@@ -147,6 +154,7 @@ namespace corvusoft
                 
                 std::string compose_path( const std::shared_ptr< const Request > request )
                 {
+                    //move to URI class.
                     auto parameters = request->get_query_parameters( );
                     if ( parameters.empty( ) ) return request->get_path( );
                     
@@ -158,7 +166,7 @@ namespace corvusoft
                     return path;
                 }
                 
-                std::string compose_version( const double value )
+                std::string compose_version( const double value  )
                 {
                     auto locale = setlocale( LC_NUMERIC, nullptr );
                     setlocale( LC_NUMERIC, "C" );

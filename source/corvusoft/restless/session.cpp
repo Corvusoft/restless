@@ -4,6 +4,7 @@
 
 //System Includes
 #include <ciso646>
+#include <algorithm>
 
 //Project Includes
 #include "corvusoft/restless/session.hpp"
@@ -15,8 +16,11 @@
 //External Includes
 
 //System Namespaces
+using std::end;
 using std::bind;
+using std::begin;
 using std::string;
+using std::search;
 using std::size_t;
 using std::uint16_t;
 using std::function;
@@ -141,21 +145,69 @@ namespace corvusoft
         void Session::fetch( const size_t length, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
         {
             if ( completion_handler == nullptr ) return;
-            // adaptor->consume( [ this, completion_handler ]( auto adaptor, auto data, auto status ) {
-            //     auto frame = frame_builder->assemble( data );
-            //     //if finalised ... else consume.
-            //     completion_handler( shared_from_this( ), response, status );
-            // } );
+            
+            if ( m_pimpl->data.size( ) < length )
+                m_pimpl->adaptor->consume( [ this, length, completion_handler ]( auto adaptor, auto data, auto status )
+            {
+                m_pimpl->data.insert( end( m_pimpl->data ), begin( data ), end( data ) );
+                
+                if ( status )
+                    completion_handler( shared_from_this( ), data, status );
+                else
+                    fetch( length, completion_handler );
+                    
+                return status;
+            } );
+            
+            auto iterator = begin( m_pimpl->data );
+            auto data = Bytes( iterator, iterator + length );
+            m_pimpl->data.erase( iterator, iterator + length );
+            completion_handler( shared_from_this( ), data, error_code( ) );
         }
         
         void Session::fetch( const string delimiter, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
         {
             if ( completion_handler == nullptr ) return;
+            
+            auto needle = make_bytes( delimiter );
+            auto position = search( begin( m_pimpl->data ), end( m_pimpl->data ), begin( needle ), end( needle ) );
+            auto found = position not_eq end( m_pimpl->data );
+            if ( not found )
+                m_pimpl->adaptor->consume( [ this, delimiter, completion_handler ]( auto adaptor, auto data, auto status )
+            {
+                m_pimpl->data.insert( end( m_pimpl->data ), begin( data ), end( data ) );
+                
+                if ( status )
+                    completion_handler( shared_from_this( ), data, status );
+                else
+                    fetch( delimiter, completion_handler );
+                    
+                return status;
+            } );
+            
+            auto data = Bytes( begin( m_pimpl->data ), position );
+            m_pimpl->data.erase( begin( m_pimpl->data ), position + delimiter.length( ) );
+            completion_handler( shared_from_this( ), data, error_code( ) );
         }
         
-        void Session::observe( const shared_ptr< Request > request, const function< milliseconds ( const shared_ptr< const Response > ) > event_handler, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > reaction_handler )
+        void Session::observe( const shared_ptr< Request > request, const function< milliseconds ( const shared_ptr< const Response >, const error_code ) > event_handler, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > reaction_handler )
         {
-            //user has to reschedule itself.
+            if ( event_handler == nullptr or reaction_handler == nullptr ) return;
+            
+            send( request, [ this, request, event_handler, reaction_handler ]( auto session, auto response, auto status )
+            {
+                auto next_probe_time = event_handler( response, status );
+                if ( next_probe_time == milliseconds::zero( ) )
+                    reaction_handler( session, response, status );
+                else
+                    m_pimpl->runloop->launch_in( next_probe_time, [ this, request, event_handler, reaction_handler ]( auto status )
+                {
+                    observe( request, event_handler, reaction_handler );
+                    return status;
+                }, "corvusoft::restless::observer" );
+                
+                return status;
+            } );
         }
         
         multimap< string, string > Session::get_default_headers( void ) const

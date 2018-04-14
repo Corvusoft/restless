@@ -90,7 +90,7 @@ namespace corvusoft
                             const std::function< std::error_code ( const std::shared_ptr< Session >, const core::Bytes, const std::error_code ) > completion_handler );
                             
                 void observe( const std::shared_ptr< Request > request,
-                              const std::function< std::chrono::milliseconds ( const std::shared_ptr< const Response > ) > event_handler,
+                              const std::function< std::chrono::milliseconds ( const std::shared_ptr< const Response >, const std::error_code ) > event_handler,
                               const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > reaction_handler );
                               
                 //Getters
