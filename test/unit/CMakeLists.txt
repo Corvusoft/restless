@@ -48,3 +48,19 @@ add_test( response_has_header_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/response
 add_executable( response_setters_unit_test_suite ${SOURCE_DIR}/response/setters.cpp )
 target_link_libraries( response_setters_unit_test_suite ${STATIC_LIBRARY_NAME} )
 add_test( response_setters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/response_setters_unit_test_suite )
+
+add_executable( settings_constructor_unit_test_suite ${SOURCE_DIR}/settings/constructor.cpp )
+target_link_libraries( settings_constructor_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( settings_constructor_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/settings_constructor_unit_test_suite )
+
+add_executable( settings_destructor_unit_test_suite ${SOURCE_DIR}/settings/destructor.cpp )
+target_link_libraries( settings_destructor_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( settings_destructor_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/settings_destructor_unit_test_suite )
+
+add_executable( settings_getters_unit_test_suite ${SOURCE_DIR}/settings/getters.cpp )
+target_link_libraries( settings_getters_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( settings_getters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/settings_getters_unit_test_suite )
+
+add_executable( settings_setters_unit_test_suite ${SOURCE_DIR}/settings/setters.cpp )
+target_link_libraries( settings_setters_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( settings_setters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/settings_setters_unit_test_suite )

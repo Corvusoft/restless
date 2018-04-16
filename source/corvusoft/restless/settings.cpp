@@ -36,8 +36,7 @@ namespace corvusoft
         
         uint16_t Settings::get_port( void ) const
         {
-            return 80;
-            //return get( "port" );
+            return get( "port", 80 );
         }
         
         string Settings::get_address( void ) const
