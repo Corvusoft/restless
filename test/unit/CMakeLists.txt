@@ -28,3 +28,23 @@ add_test( request_getters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/request_gett
 add_executable( request_setters_unit_test_suite ${SOURCE_DIR}/request/setters.cpp )
 target_link_libraries( request_setters_unit_test_suite ${STATIC_LIBRARY_NAME} )
 add_test( request_setters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/request_setters_unit_test_suite )
+
+add_executable( response_constructor_unit_test_suite ${SOURCE_DIR}/response/constructor.cpp )
+target_link_libraries( response_constructor_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( response_constructor_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/response_constructor_unit_test_suite )
+
+add_executable( response_destructor_unit_test_suite ${SOURCE_DIR}/response/destructor.cpp )
+target_link_libraries( response_destructor_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( response_destructor_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/response_destructor_unit_test_suite )
+
+add_executable( response_getters_unit_test_suite ${SOURCE_DIR}/response/getters.cpp )
+target_link_libraries( response_getters_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( response_getters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/response_getters_unit_test_suite )
+
+add_executable( response_has_header_unit_test_suite ${SOURCE_DIR}/response/has_header.cpp )
+target_link_libraries( response_has_header_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( response_has_header_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/response_has_header_unit_test_suite )
+
+add_executable( response_setters_unit_test_suite ${SOURCE_DIR}/response/setters.cpp )
+target_link_libraries( response_setters_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( response_setters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/response_setters_unit_test_suite )
