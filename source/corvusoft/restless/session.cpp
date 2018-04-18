@@ -98,8 +98,7 @@ namespace corvusoft
         
         void Session::open( const string& address, const uint16_t port, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
         {
-            if ( m_pimpl->settings == nullptr )
-                m_pimpl->settings = make_shared< Settings >( );
+            m_pimpl->settings = make_shared< Settings >( );
             m_pimpl->settings->set_port( port );
             m_pimpl->settings->set_address( address );
             
@@ -128,7 +127,6 @@ namespace corvusoft
         
         void Session::yield( const string data, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
         {
-            if ( completion_handler == nullptr ) return;
             yield( make_bytes( data ), completion_handler );
         }
         
@@ -158,19 +156,25 @@ namespace corvusoft
                     
                 return status;
             } );
-            
-            auto iterator = begin( m_pimpl->data );
-            auto data = Bytes( iterator, iterator + length );
-            m_pimpl->data.erase( iterator, iterator + length );
-            completion_handler( shared_from_this( ), data, error_code( ) );
+            else
+            {
+                auto iterator = begin( m_pimpl->data );
+                auto data = Bytes( iterator, iterator + length );
+                m_pimpl->data.erase( iterator, iterator + length );
+                completion_handler( shared_from_this( ), data, error_code( ) );
+            }
         }
         
         void Session::fetch( const string delimiter, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
         {
+            fetch( make_bytes( delimiter ), completion_handler );
+        }
+        
+        void Session::fetch( const Bytes delimiter, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
+        {
             if ( completion_handler == nullptr ) return;
             
-            auto needle = make_bytes( delimiter );
-            auto position = search( begin( m_pimpl->data ), end( m_pimpl->data ), begin( needle ), end( needle ) );
+            auto position = search( begin( m_pimpl->data ), end( m_pimpl->data ), begin( delimiter ), end( delimiter ) );
             auto found = position not_eq end( m_pimpl->data );
             if ( not found )
                 m_pimpl->adaptor->consume( [ this, delimiter, completion_handler ]( auto adaptor, auto data, auto status )
@@ -184,10 +188,12 @@ namespace corvusoft
                     
                 return status;
             } );
-            
-            auto data = Bytes( begin( m_pimpl->data ), position );
-            m_pimpl->data.erase( begin( m_pimpl->data ), position + delimiter.length( ) );
-            completion_handler( shared_from_this( ), data, error_code( ) );
+            else
+            {
+                auto data = Bytes( begin( m_pimpl->data ), position );
+                m_pimpl->data.erase( begin( m_pimpl->data ), position + delimiter.size( ) );
+                completion_handler( shared_from_this( ), data, error_code( ) );
+            }
         }
         
         void Session::observe( const shared_ptr< Request > request, const function< milliseconds ( const shared_ptr< const Response >, const error_code ) > event_handler, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > reaction_handler )
@@ -208,6 +214,11 @@ namespace corvusoft
                 
                 return status;
             } );
+        }
+        
+        shared_ptr< Settings > Session::get_settings( void ) const
+        {
+            return m_pimpl->settings;
         }
         
         multimap< string, string > Session::get_default_headers( void ) const

@@ -64,3 +64,43 @@ add_test( settings_getters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/settings_ge
 add_executable( settings_setters_unit_test_suite ${SOURCE_DIR}/settings/setters.cpp )
 target_link_libraries( settings_setters_unit_test_suite ${STATIC_LIBRARY_NAME} )
 add_test( settings_setters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/settings_setters_unit_test_suite )
+
+add_executable( session_close_unit_test_suite ${SOURCE_DIR}/session/close.cpp )
+target_link_libraries( session_close_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_close_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_close_unit_test_suite )
+
+add_executable( session_constructor_unit_test_suite ${SOURCE_DIR}/session/constructor.cpp )
+target_link_libraries( session_constructor_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_constructor_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_constructor_unit_test_suite )
+
+add_executable( session_destructor_unit_test_suite ${SOURCE_DIR}/session/destructor.cpp )
+target_link_libraries( session_destructor_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_destructor_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_destructor_unit_test_suite )
+
+add_executable( session_fetch_unit_test_suite ${SOURCE_DIR}/session/fetch.cpp )
+target_link_libraries( session_fetch_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_fetch_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_fetch_unit_test_suite )
+
+add_executable( session_getters_unit_test_suite ${SOURCE_DIR}/session/getters.cpp )
+target_link_libraries( session_getters_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_getters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_getters_unit_test_suite )
+
+add_executable( session_observe_unit_test_suite ${SOURCE_DIR}/session/observe.cpp )
+target_link_libraries( session_observe_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_observe_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_observe_unit_test_suite )
+
+add_executable( session_open_unit_test_suite ${SOURCE_DIR}/session/open.cpp )
+target_link_libraries( session_open_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_open_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_open_unit_test_suite )
+
+add_executable( session_send_unit_test_suite ${SOURCE_DIR}/session/send.cpp )
+target_link_libraries( session_send_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_send_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_send_unit_test_suite )
+
+add_executable( session_setters_unit_test_suite ${SOURCE_DIR}/session/setters.cpp )
+target_link_libraries( session_setters_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_setters_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_setters_unit_test_suite )
+
+add_executable( session_yield_unit_test_suite ${SOURCE_DIR}/session/yield.cpp )
+target_link_libraries( session_yield_unit_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_yield_unit_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_yield_unit_test_suite )
