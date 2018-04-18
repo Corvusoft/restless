@@ -77,8 +77,6 @@ namespace corvusoft
                 status = m_pimpl->adaptor->teardown( );
                 return completion_handler( shared_from_this( ), status );
             } );
-            
-            m_pimpl->runloop->wait( );
         }
         
         void Session::open( const shared_ptr< Settings > settings, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )

@@ -24,12 +24,21 @@ using corvusoft::core::make_bytes;
 TEST_CASE( "Assert invalid fetch parameters." )
 {
     auto session = make_shared< Session >( );
-    //REQUIRE_NOTHROW( session->fetch( -23, nullptr ) );
-    //REQUIRE_NOTHROW( session->fetch( 0, nullptr ) );
-    //REQUIRE_NOTHROW( session->fetch( 34463, nullptr ) );
-    //REQUIRE_NOTHROW( session->fetch( -34, [ ]( auto, auto, auto ) { return error_code( ); } ) );
-    //REQUIRE_NOTHROW( session->fetch( 0, [ ]( auto, auto, auto ) { return error_code( ); } ) );
-    //REQUIRE_NOTHROW( session->fetch( 34463, [ ]( auto, auto, auto ) { return error_code( ); } ) );
+    REQUIRE_NOTHROW( session->fetch( -23, nullptr ) );
+    REQUIRE_NOTHROW( session->fetch( 0, nullptr ) );
+    REQUIRE_NOTHROW( session->fetch( 34463, nullptr ) );
+    REQUIRE_NOTHROW( session->fetch( -34, [ ]( auto, auto, auto )
+    {
+        return error_code( );
+    } ) );
+    REQUIRE_NOTHROW( session->fetch( 0, [ ]( auto, auto, auto )
+    {
+        return error_code( );
+    } ) );
+    REQUIRE_NOTHROW( session->fetch( 34463, [ ]( auto, auto, auto )
+    {
+        return error_code( );
+    } ) );
     REQUIRE_NOTHROW( session->fetch( "", nullptr ) );
     REQUIRE_NOTHROW( session->fetch( "\r\n", nullptr ) );
     REQUIRE_NOTHROW( session->fetch( "", [ ]( auto, auto, auto )
