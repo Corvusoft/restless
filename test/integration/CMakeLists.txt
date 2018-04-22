@@ -13,6 +13,6 @@ include_directories( SYSTEM ${catch_INCLUDE} )
 #
 # Build
 #
-#add_executable( session_integration_test_suite ${SOURCE_DIR}/session.cpp )
-#target_link_libraries( session_integration_test_suite ${STATIC_LIBRARY_NAME} )
-#add_test( session_integration_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_integration_test_suite )
+add_executable( session_close_integration_test_suite ${SOURCE_DIR}/session/close.cpp )
+target_link_libraries( session_close_integration_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_close_integration_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_close_integration_test_suite )
