@@ -22,7 +22,8 @@
 //External Includes
 #include <corvusoft/core/run_loop.hpp>
 #include <corvusoft/core/log_level.hpp>
-#include <corvusoft/network/tcpip.hpp>
+#include <corvusoft/network/adaptor.hpp>
+#include <corvusoft/network/uri_builder.hpp>
 #include <corvusoft/protocol/http_frame.hpp>
 #include <corvusoft/protocol/http_frame_builder.hpp>
 
@@ -154,16 +155,10 @@ namespace corvusoft
                 
                 std::string compose_path( const std::shared_ptr< const Request > request )
                 {
-                    //move to URI class.
-                    auto parameters = request->get_query_parameters( );
-                    if ( parameters.empty( ) ) return request->get_path( );
-                    
-                    auto path = request->get_path( ) + "?";
-                    for ( auto parameter : parameters )
-                        path += parameter.first + "=" + parameter.second + "&";
-                        
-                    path.pop_back( );
-                    return path;
+                    auto builder = std::make_shared< network::URIBuilder >( );
+                    builder->set_path( request->get_path( ) );
+                    builder->set_parameters( request->get_query_parameters( ) );
+                    return builder->build( );
                 }
                 
                 std::string compose_version( const double value  )

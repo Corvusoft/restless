@@ -14,6 +14,7 @@
 #include "corvusoft/restless/detail/session_impl.hpp"
 
 //External Includes
+#include <corvusoft/network/tcpip.hpp>
 
 //System Namespaces
 using std::end;
