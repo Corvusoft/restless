@@ -2,6 +2,9 @@
 build/
 distribution/
 
+# IDE Files
+.vscode/
+
 # Compiled source
 *.com
 *.class

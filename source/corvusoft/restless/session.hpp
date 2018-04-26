@@ -2,8 +2,7 @@
  * Copyright 2013-2018, Corvusoft Ltd, All Rights Reserved.
  */
 
-#ifndef _CORVUSOFT_RESTLESS_SESSION_H
-#define _CORVUSOFT_RESTLESS_SESSION_H 1
+#pragma once
 
 //System Includes
 #include <map>
@@ -151,5 +150,3 @@ namespace corvusoft
         };
     }
 }
-
-#endif  /* _CORVUSOFT_RESTLESS_SESSION_H */
