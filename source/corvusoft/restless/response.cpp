@@ -74,7 +74,10 @@ namespace corvusoft
         
         multimap< string, string > Response::get_headers( const string& name ) const
         {
-            return m_pimpl->headers;
+            if ( name.empty( ) ) return m_pimpl->headers;
+            
+            auto range = m_pimpl->headers.equal_range( name );
+            return multimap< string, string >( range.first, range.second );
         }
         
         void Response::set_version( const double value )

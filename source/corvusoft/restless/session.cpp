@@ -143,8 +143,16 @@ namespace corvusoft
         {
             if ( completion_handler == nullptr ) return;
             
-            if ( m_pimpl->data.size( ) < length )
-                m_pimpl->adaptor->consume( [ this, length, completion_handler ]( auto adaptor, auto data, auto status )
+            if ( m_pimpl->data.size( ) >= length )
+            {
+                auto iterator = begin( m_pimpl->data );
+                auto data = Bytes( iterator, iterator + length );
+                m_pimpl->data.erase( iterator, iterator + length );
+                completion_handler( shared_from_this( ), data, error_code( ) );
+                return;
+            }
+            
+            m_pimpl->adaptor->consume( [ this, length, completion_handler ]( auto adaptor, auto data, auto status )
             {
                 m_pimpl->data.insert( end( m_pimpl->data ), begin( data ), end( data ) );
                 
@@ -155,13 +163,6 @@ namespace corvusoft
                     
                 return status;
             } );
-            else
-            {
-                auto iterator = begin( m_pimpl->data );
-                auto data = Bytes( iterator, iterator + length );
-                m_pimpl->data.erase( iterator, iterator + length );
-                completion_handler( shared_from_this( ), data, error_code( ) );
-            }
         }
         
         void Session::fetch( const string delimiter, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
@@ -173,10 +174,18 @@ namespace corvusoft
         {
             if ( completion_handler == nullptr ) return;
             
-            auto position = search( begin( m_pimpl->data ), end( m_pimpl->data ), begin( delimiter ), end( delimiter ) );
+            auto start = begin( m_pimpl->data );
+            auto position = search( start, end( m_pimpl->data ), begin( delimiter ), end( delimiter ) );
             auto found = position not_eq end( m_pimpl->data );
-            if ( not found )
-                m_pimpl->adaptor->consume( [ this, delimiter, completion_handler ]( auto adaptor, auto data, auto status )
+            if ( found )
+            {
+                auto data = Bytes( start, position );
+                m_pimpl->data.erase( start, position + delimiter.size( ) );
+                completion_handler( shared_from_this( ), data, error_code( ) );
+                return;
+            }
+            
+            m_pimpl->adaptor->consume( [ this, delimiter, completion_handler ]( auto adaptor, auto data, auto status )
             {
                 m_pimpl->data.insert( end( m_pimpl->data ), begin( data ), end( data ) );
                 
@@ -187,12 +196,6 @@ namespace corvusoft
                     
                 return status;
             } );
-            else
-            {
-                auto data = Bytes( begin( m_pimpl->data ), position );
-                m_pimpl->data.erase( begin( m_pimpl->data ), position + delimiter.size( ) );
-                completion_handler( shared_from_this( ), data, error_code( ) );
-            }
         }
         
         void Session::observe( const shared_ptr< Request > request, const function< milliseconds ( const shared_ptr< const Response >, const error_code ) > event_handler, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > reaction_handler )

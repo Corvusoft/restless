@@ -61,7 +61,7 @@ namespace corvusoft
                 
                 core::Bytes get_body( void ) const;
                 
-                template< typename Type, typename std::enable_if< std::is_arithmetic< Type >::value, Type >::type = 0 >
+                template < typename Type, typename enable = std::enable_if_t < std::is_arithmetic< Type >::value && ! std::is_same< Type, char >::value, Type > >
                 Type get_header( const std::string& name, const Type default_value ) const
                 {
                     std::istringstream stream( get_header( name ) );

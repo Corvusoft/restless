@@ -31,5 +31,7 @@ TEST_CASE( "Assert default getter state." )
     REQUIRE( response->get_protocol( ).empty( ) );
     REQUIRE( response->get_header( "" ).empty( ) );
     REQUIRE( response->get_header( "Host" ).empty( ) );
+    REQUIRE( response->get_header( "Host", "DEFAULT VALUE" ) == "DEFAULT VALUE" );
     REQUIRE( response->get_headers( ).empty( ) );
+    REQUIRE( response->get_headers( "Content-Type" ).empty( ) );
 }
