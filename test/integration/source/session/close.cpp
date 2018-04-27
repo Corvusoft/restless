@@ -28,11 +28,11 @@ TEST_CASE( "Assert close callback is invoked." )
     auto session = make_shared< Session >( adaptor, runloop );
     
     bool close_called = false;
-    REQUIRE_NOTHROW( session->close( [ &close_called ] ( auto adaptor, auto error )
+    REQUIRE_NOTHROW( session->close( [ &close_called ] ( auto session, auto error )
     {
         error_code success;
         REQUIRE( error == success );
-        REQUIRE( adaptor not_eq nullptr );
+        REQUIRE( session not_eq nullptr );
         close_called = true;
         return success;
     } ) );
