@@ -96,8 +96,6 @@ namespace corvusoft
                               const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > reaction_handler );
                               
                 //Getters
-                std::shared_ptr< Settings > get_settings( void ) const;
-                
                 std::multimap< std::string, std::string > get_default_headers( void ) const;
                 
                 //Setters

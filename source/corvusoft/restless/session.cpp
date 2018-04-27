@@ -215,11 +215,6 @@ namespace corvusoft
             } );
         }
         
-        shared_ptr< Settings > Session::get_settings( void ) const
-        {
-            return m_pimpl->settings;
-        }
-        
         multimap< string, string > Session::get_default_headers( void ) const
         {
             multimap< string, string > values = m_pimpl->default_headers;
