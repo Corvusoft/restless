@@ -24,3 +24,7 @@ add_test( session_open_integration_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_
 add_executable( session_send_integration_test_suite ${SOURCE_DIR}/session/send.cpp )
 target_link_libraries( session_send_integration_test_suite ${STATIC_LIBRARY_NAME} )
 add_test( session_send_integration_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_send_integration_test_suite )
+
+add_executable( session_yield_integration_test_suite ${SOURCE_DIR}/session/yield.cpp )
+target_link_libraries( session_yield_integration_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( session_yield_integration_test_suite ${EXECUTABLE_OUTPUT_PATH}/session_yield_integration_test_suite )
