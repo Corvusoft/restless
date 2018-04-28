@@ -57,11 +57,7 @@ namespace corvusoft
                 
                 std::string get_protocol( void ) const;
                 
-                std::string get_header( const std::string& name ) const;
-                
                 std::multimap< std::string, std::string > get_headers( void ) const;
-                
-                std::string get_query_parameter( const std::string& name ) const;
                 
                 std::multimap< std::string, std::string > get_query_parameters( void ) const;
                 

@@ -61,23 +61,9 @@ namespace corvusoft
             return m_pimpl->protocol;
         }
         
-        string Request::get_header( const string& name ) const
-        {
-            auto iterator = m_pimpl->headers.find( name );
-            if ( iterator == m_pimpl->headers.end( ) ) return "";
-            return iterator->second;
-        }
-        
         multimap< string, string > Request::get_headers( void ) const
         {
             return m_pimpl->headers;
-        }
-        
-        string Request::get_query_parameter( const string& name ) const
-        {
-            auto iterator = m_pimpl->parameters.find( name );
-            if ( iterator == m_pimpl->parameters.end( ) ) return "";
-            return iterator->second;
         }
         
         multimap< string, string > Request::get_query_parameters( void ) const

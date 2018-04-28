@@ -13,6 +13,10 @@ include_directories( SYSTEM ${catch_INCLUDE} )
 #
 # Build
 #
+add_executable( request_accessors_integration_test_suite ${SOURCE_DIR}/request/accessors.cpp )
+target_link_libraries( request_accessors_integration_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( request_accessors_integration_test_suite ${EXECUTABLE_OUTPUT_PATH}/request_accessors_integration_test_suite )
+
 add_executable( response_accessors_integration_test_suite ${SOURCE_DIR}/response/accessors.cpp )
 target_link_libraries( response_accessors_integration_test_suite ${STATIC_LIBRARY_NAME} )
 add_test( response_accessors_integration_test_suite ${EXECUTABLE_OUTPUT_PATH}/response_accessors_integration_test_suite )

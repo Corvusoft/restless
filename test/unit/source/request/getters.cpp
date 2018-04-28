@@ -29,10 +29,6 @@ TEST_CASE( "Assert default getter state." )
     REQUIRE( request->get_path( ).empty( ) );
     REQUIRE( request->get_method( ).empty( ) );
     REQUIRE( request->get_protocol( ).empty( ) );
-    REQUIRE( request->get_header( "" ).empty( ) );
-    REQUIRE( request->get_header( "Host" ).empty( ) );
     REQUIRE( request->get_headers( ).empty( ) );
-    REQUIRE( request->get_query_parameter( "" ).empty( ) );
-    REQUIRE( request->get_query_parameter( "q" ).empty( ) );
     REQUIRE( request->get_query_parameters( ).empty( ) );
 }
