@@ -3,7 +3,7 @@ Restless [![Build Status](https://travis-ci.org/Corvusoft/restless.svg?branch=ma
 
 ---
 
-Restless is a comprehensive and consistent programming model for building applications that require seamless and secure communication over HTTP, with the ability to model a range of business processes, designed to target mobile, tablet, desktop and embedded production environments.
+Restless is a comprehensive and consistent programming model for building applications that require seamless and secure communication over HTTP, with the ability to model a range of business processes and production environments.
 
 Example
 -------
