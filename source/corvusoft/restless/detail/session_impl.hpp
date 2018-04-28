@@ -52,6 +52,8 @@ namespace corvusoft
             {
                 core::Bytes buffer { };
                 
+                int receive_circuit_breaker_limit = 5;
+                
                 std::shared_ptr< Settings > settings = nullptr;
                 
                 std::shared_ptr< core::RunLoop > runloop = nullptr;
@@ -74,7 +76,7 @@ namespace corvusoft
                         
                         auto frame = builder->assemble( buffer );
                         if ( not builder->is_finalised( ) )
-                            return make_error_code( std::errc::resource_unavailable_try_again ); //add circuit breaker.
+                            return make_error_code( std::errc::resource_unavailable_try_again, receive_circuit_breaker_limit );
                             
                         auto response = assemble( frame );
                         if ( response == nullptr )

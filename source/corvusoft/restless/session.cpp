@@ -58,7 +58,7 @@ namespace corvusoft
         
         Session::Session( const shared_ptr< Adaptor > adaptor, const shared_ptr< RunLoop > runloop ) : m_pimpl( new SessionImpl )
         {
-            m_pimpl->adaptor = adaptor;//what if the user hands in nullptr, what if mixed. how to share runloop?
+            m_pimpl->adaptor = adaptor;
             m_pimpl->runloop = runloop;
         }
         
