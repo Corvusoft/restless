@@ -13,6 +13,14 @@ include_directories( SYSTEM ${catch_INCLUDE} )
 #
 # Build
 #
-add_executable( request_response_feature_test_suite ${SOURCE_DIR}/request_response.cpp )
-target_link_libraries( request_response_feature_test_suite ${STATIC_LIBRARY_NAME} )
-add_test( request_response_feature_test_suite ${EXECUTABLE_OUTPUT_PATH}/request_response_feature_test_suite )
+add_executable( http_pipelining_feature_test_suite ${SOURCE_DIR}/http_pipelining.cpp )
+target_link_libraries( http_pipelining_feature_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( http_pipelining_feature_test_suite ${EXECUTABLE_OUTPUT_PATH}/http_pipelining_feature_test_suite )
+
+add_executable( request_response_lifecycle_feature_test_suite ${SOURCE_DIR}/request_response_lifecycle.cpp )
+target_link_libraries( request_response_lifecycle_feature_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( request_response_lifecycle_feature_test_suite ${EXECUTABLE_OUTPUT_PATH}/request_response_lifecycle_feature_test_suite )
+
+add_executable( transfer_encoding_feature_test_suite ${SOURCE_DIR}/transfer_encoding.cpp )
+target_link_libraries( transfer_encoding_feature_test_suite ${STATIC_LIBRARY_NAME} )
+add_test( transfer_encoding_feature_test_suite ${EXECUTABLE_OUTPUT_PATH}/transfer_encoding_feature_test_suite )

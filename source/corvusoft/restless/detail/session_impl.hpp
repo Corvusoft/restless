@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include <stdexcept>
 #include <functional>
 #include <system_error>
@@ -49,7 +50,7 @@ namespace corvusoft
             
             struct SessionImpl
             {
-                core::Bytes data { };
+                core::Bytes buffer { };
                 
                 std::shared_ptr< Settings > settings = nullptr;
                 
@@ -68,12 +69,10 @@ namespace corvusoft
                     auto builder = std::make_shared< protocol::HTTPFrameBuilder >( );
                     adaptor->consume( [ this, session, completion_handler, builder ]( auto, auto data, auto status )
                     {
-                        this->data.insert( std::end( this->data ), std::begin( data ), std::end( data ) );
+                        if ( status ) return completion_handler( session, nullptr, status );
+                        buffer.insert( std::end( buffer ), std::begin( data ), std::end( data ) );
                         
-                        if ( status )
-                            return completion_handler( session, nullptr, status );
-                            
-                        auto frame = builder->assemble( this->data );
+                        auto frame = builder->assemble( buffer );
                         if ( not builder->is_finalised( ) )
                             return make_error_code( std::errc::resource_unavailable_try_again ); //add circuit breaker.
                             
@@ -82,9 +81,12 @@ namespace corvusoft
                             return completion_handler( session, nullptr, make_error_code( std::errc::bad_message ) );
                             
                         auto body = response->get_body( );
-                        auto length = this->data.size( ) - body.size( );//hmmm, danager.
-                        this->data.erase( std::begin( this->data ), std::begin( this->data ) + length );
-                        
+                        auto position = std::search( std::begin( buffer ), std::end( buffer ), std::begin( body ), std::end( body ) );
+                        if ( body.empty( ) or position == std::end( buffer ) )
+                            buffer.clear( );
+                        else
+                            buffer.erase( std::begin( buffer ), position + body.size( ) );
+                            
                         return completion_handler( session, response, status );
                     } );
                 }

@@ -71,7 +71,7 @@ namespace corvusoft
         {
             if ( completion_handler == nullptr ) return;
             
-            m_pimpl->adaptor->close( [ this, completion_handler ]( auto adaptor, auto status )
+            m_pimpl->adaptor->close( [ this, completion_handler ]( auto, auto status )
             {
                 if ( status ) return completion_handler( shared_from_this( ), status );
                 
@@ -143,18 +143,18 @@ namespace corvusoft
         {
             if ( completion_handler == nullptr ) return;
             
-            if ( m_pimpl->data.size( ) >= length )
+            if ( m_pimpl->buffer.size( ) >= length )
             {
-                auto iterator = begin( m_pimpl->data );
+                auto iterator = begin( m_pimpl->buffer );
                 auto data = Bytes( iterator, iterator + length );
-                m_pimpl->data.erase( iterator, iterator + length );
+                m_pimpl->buffer.erase( iterator, iterator + length );
                 completion_handler( shared_from_this( ), data, error_code( ) );
                 return;
             }
             
-            m_pimpl->adaptor->consume( [ this, length, completion_handler ]( auto adaptor, auto data, auto status )
+            m_pimpl->adaptor->consume( [ this, length, completion_handler ]( auto, auto data, auto status )
             {
-                m_pimpl->data.insert( end( m_pimpl->data ), begin( data ), end( data ) );
+                m_pimpl->buffer.insert( end( m_pimpl->buffer ), begin( data ), end( data ) );
                 
                 if ( status )
                     completion_handler( shared_from_this( ), data, status );
@@ -174,20 +174,20 @@ namespace corvusoft
         {
             if ( completion_handler == nullptr ) return;
             
-            auto start = begin( m_pimpl->data );
-            auto position = search( start, end( m_pimpl->data ), begin( delimiter ), end( delimiter ) );
-            auto found = position not_eq end( m_pimpl->data );
+            auto start = begin( m_pimpl->buffer );
+            auto position = search( start, end( m_pimpl->buffer ), begin( delimiter ), end( delimiter ) );
+            auto found = position not_eq end( m_pimpl->buffer );
             if ( found )
             {
                 auto data = Bytes( start, position );
-                m_pimpl->data.erase( start, position + delimiter.size( ) );
+                m_pimpl->buffer.erase( start, position + delimiter.size( ) );
                 completion_handler( shared_from_this( ), data, error_code( ) );
                 return;
             }
             
-            m_pimpl->adaptor->consume( [ this, delimiter, completion_handler ]( auto adaptor, auto data, auto status )
+            m_pimpl->adaptor->consume( [ this, delimiter, completion_handler ]( auto, auto data, auto status )
             {
-                m_pimpl->data.insert( end( m_pimpl->data ), begin( data ), end( data ) );
+                m_pimpl->buffer.insert( end( m_pimpl->buffer ), begin( data ), end( data ) );
                 
                 if ( status )
                     completion_handler( shared_from_this( ), data, status );
