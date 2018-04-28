@@ -52,8 +52,6 @@ namespace corvusoft
             {
                 core::Bytes buffer { };
                 
-                int receive_circuit_breaker_limit = 5;
-                
                 std::shared_ptr< Settings > settings = nullptr;
                 
                 std::shared_ptr< core::RunLoop > runloop = nullptr;
@@ -76,11 +74,11 @@ namespace corvusoft
                         
                         auto frame = builder->assemble( buffer );
                         if ( not builder->is_finalised( ) )
-                            return make_error_code( std::errc::resource_unavailable_try_again, receive_circuit_breaker_limit );
+                            return std::make_error_code( std::errc::resource_unavailable_try_again );
                             
                         auto response = assemble( frame );
                         if ( response == nullptr )
-                            return completion_handler( session, nullptr, make_error_code( std::errc::bad_message ) );
+                            return completion_handler( session, nullptr, std::make_error_code( std::errc::bad_message ) );
                             
                         auto body = response->get_body( );
                         auto position = std::search( std::begin( buffer ), std::end( buffer ), std::begin( body ), std::end( body ) );
