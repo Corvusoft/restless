@@ -32,9 +32,7 @@ matrix:
 before_script:
   - if [ -n "$COMPILERC" ]; then export CC=$COMPILERC; fi
   - if [ -n "$COMPILERCXX" ]; then export CXX=$COMPILERCXX; fi 
-  - mkdir build
-  - cd build
-  - cmake ..
+  - ./build/all.sh
 
 script: make && make test
 

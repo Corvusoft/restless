@@ -24,7 +24,7 @@ using corvusoft::restless::Session;
 using corvusoft::restless::Request;
 using corvusoft::restless::Response;
 
-auto session = make_shared< Session >( adaptor, runloop );
+auto session = make_shared< Session >( );
 session->open( "www.corvusoft.co.uk", 80, [ ]( auto session, auto status )
 {    
     auto request = make_shared< Request >( );
@@ -60,11 +60,7 @@ Build
 
 ```bash
 git clone --recursive https://github.com/corvusoft/restless.git
-mkdir restless/build
-cd restless/build
-cmake  ..
-make install
-make test
+./restless/build/all.sh
 ```
 
 You will now find all required components installed in the distribution folder.
