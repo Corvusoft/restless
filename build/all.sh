@@ -28,7 +28,7 @@ do
     
     if [ "$1" == "new" ]; then
         make clean
-        find $dependency -iwholename '*cmake*' -not -name CMakeLists.txt -delete
+        find . -iwholename '*cmake*' -not -name CMakeLists.txt -delete
     fi
 
     make install
