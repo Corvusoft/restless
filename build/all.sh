@@ -10,6 +10,8 @@ dependencies[2]="dependency/network/dependency/runloop"
 dependencies[3]="dependency/protocol"
 dependencies[4]="dependency/network"
 
+export CTEST_OUTPUT_ON_FAILURE=1
+
 echo "Building Restless dependencies..."
 for dependency in ${dependencies[@]}
 do
