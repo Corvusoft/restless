@@ -16,13 +16,18 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - os: linux
-      compiler: clang
       addons:
         apt:
           sources:
-          - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+
     - os: osx
       compiler: gcc
+  
     - os: osx
       compiler: clang
 before_script:
