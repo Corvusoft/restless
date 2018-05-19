@@ -1,123 +1,250 @@
 /*
- * Copyright 2013-2016, Corvusoft Ltd, All Rights Reserved.
+ * Copyright 2013-2018, Corvusoft Ltd, All Rights Reserved.
  */
 
 //System Includes
 #include <ciso646>
-#include <system_error>
+#include <algorithm>
 
 //Project Includes
 #include "corvusoft/restless/session.hpp"
+#include "corvusoft/restless/request.hpp"
+#include "corvusoft/restless/response.hpp"
+#include "corvusoft/restless/settings.hpp"
 #include "corvusoft/restless/detail/session_impl.hpp"
 
 //External Includes
-#include "corvusoft/restbed/detail/http_impl.hpp"
+#include <corvusoft/network/tcpip.hpp>
 
 //System Namespaces
-using std::map;
-using std::size_t;
+using std::end;
+using std::bind;
+using std::begin;
 using std::string;
+using std::search;
+using std::size_t;
+using std::uint16_t;
 using std::function;
 using std::multimap;
 using std::error_code;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::make_shared;
+using std::make_error_code;
+using std::chrono::milliseconds;
+using std::dynamic_pointer_cast;
 
 //Project Namespaces
-using restless::detail::SessionImpl;
+using corvusoft::restless::detail::SessionImpl;
 
 //External Namespaces
-using restbed::detail::HttpImpl;
+using corvusoft::core::Bytes;
+using corvusoft::core::make_bytes;
+using corvusoft::core::RunLoop;
+using corvusoft::network::TCPIP;
+using corvusoft::network::Adaptor;
+using corvusoft::protocol::Frame;
 
-namespace restless
+namespace corvusoft
 {
-    Session::Session( const Uri& uri, const shared_ptr< const Settings >& settings ) : m_pimpl( new SessionImpl( uri, settings ) )
+    namespace restless
     {
-        return;
-    }
-    
-    Session::~Session( void )
-    {
-        return;
-    }
-    
-    void Session::wait( void )
-    {
-    
-    }
-    
-    void Session::close( void )
-    {
-        m_pimpl->close( );
-    }
-    
-    bool Session::is_open( void ) const
-    {
-        return m_pimpl->m_is_open;
-    }
-    
-    bool Session::is_closed( void ) const
-    {
-        return not m_pimpl->m_is_open;
-    }
-    
-    Bytes Session::fetch( const size_t length, const function< void ( const Bytes, const error_code ) >& completion_handler )
-    {
-        return m_pimpl->fetch( length, completion_handler );
-    }
-    
-    Bytes Session::fetch( const string& delimiter, const function< void ( const Bytes, const error_code ) >& completion_handler )
-    {
-        return m_pimpl->fetch( delimiter, completion_handler );
-    }
-    
-    const shared_ptr< Response > Session::send( const shared_ptr< Request >& request, const function< Bytes ( void ) >& upload_handler )
-    {
-        auto data = HttpImpl::to_bytes( request );
-        
-        error_code error;
-        auto response = m_pimpl->sync( data, upload_handler, error );
-        
-        if ( error )
+        Session::Session( void ) : m_pimpl( new SessionImpl )
         {
-            close( );
-            return m_pimpl->create_error_response( error );
+            m_pimpl->runloop = make_shared< RunLoop >( );
+            m_pimpl->adaptor = make_shared< TCPIP >( m_pimpl->runloop );
+            m_pimpl->runloop->start( );
         }
         
-        return m_pimpl->parse( response );
-    }
-    
-    void Session::send( const shared_ptr< Request >& request, const function< void ( const shared_ptr< Session >, const shared_ptr< Request >, const shared_ptr< Response > ) >& completion_handler )
-    {
-        send( request, nullptr, completion_handler );
-    }
-    
-    void Session::send( const shared_ptr< Request >& request, const function< Bytes ( void ) >& upload_handler, const function< void ( const shared_ptr< Session >, const shared_ptr< Request >, const shared_ptr< Response > ) >& completion_handler )
-    {
-        // auto data = HttpImpl::to_bytes( request );
+        Session::Session( const shared_ptr< Adaptor > adaptor, const shared_ptr< RunLoop > runloop ) : m_pimpl( new SessionImpl )
+        {
+            m_pimpl->adaptor = adaptor;
+            m_pimpl->runloop = runloop;
+        }
         
-        //m_pimpl->async( data, upload_handler, completion_handler );
-    }
-    
-    const multimap< string, string > Session::get_headers( void ) const
-    {
-        return m_pimpl->m_headers;
-    }
-    
-    void Session::add_header( const string& name, const string& value )
-    {
-        m_pimpl->m_headers.insert( make_pair( name, value ) );
-    }
-    
-    void Session::set_header( const string& name, const string& value )
-    {
-        m_pimpl->m_headers.erase( name );
-        add_header( name, value );
-    }
-    
-    void Session::set_headers( const multimap< string, string >& values )
-    {
-        m_pimpl->m_headers = values;
+        Session::~Session( void )
+        {
+            return;
+        }
+        
+        void Session::close( const function< error_code ( const shared_ptr< Session >, const error_code status ) > completion_handler )
+        {
+            if ( completion_handler == nullptr ) return;
+            
+            m_pimpl->adaptor->close( [ this, completion_handler ]( auto, auto status )
+            {
+                if ( status ) return completion_handler( shared_from_this( ), status );
+                
+                status = m_pimpl->adaptor->teardown( );
+                return completion_handler( shared_from_this( ), status );
+            } );
+        }
+        
+        void Session::open( const shared_ptr< Settings > settings, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
+        {
+            if ( completion_handler == nullptr ) return;
+            
+            m_pimpl->settings = settings;
+            auto status = m_pimpl->adaptor->setup( m_pimpl->settings );
+            if ( status )
+                completion_handler( shared_from_this( ), status );
+            else
+                m_pimpl->adaptor->open( m_pimpl->settings, [ this, completion_handler ]( auto, auto status )
+            {
+                return completion_handler( shared_from_this( ), status );
+            } );
+        }
+        
+        void Session::open( const string& address, const uint16_t port, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
+        {
+            m_pimpl->settings = make_shared< Settings >( );
+            m_pimpl->settings->set_port( port );
+            m_pimpl->settings->set_address( address );
+            
+            open( m_pimpl->settings, completion_handler );
+        }
+        
+        void Session::send( const shared_ptr< Request > request, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > completion_handler )
+        {
+            if ( request == nullptr or completion_handler == nullptr ) return;
+            
+            auto headers = request->get_headers( );
+            auto default_headers = get_default_headers( );
+            headers.insert( begin( default_headers ), end( default_headers ) );
+            request->set_headers( headers );
+            
+            auto data = m_pimpl->disassemble( request );
+            m_pimpl->adaptor->produce( data, [ this, completion_handler ]( auto, auto, auto status )
+            {
+                if ( status )
+                    return completion_handler( shared_from_this( ), nullptr, status );
+                    
+                m_pimpl->receive( shared_from_this( ), completion_handler );
+                return status;
+            } );
+        }
+        
+        void Session::yield( const string data, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
+        {
+            yield( make_bytes( data ), completion_handler );
+        }
+        
+        void Session::yield( const Bytes data, const function< error_code ( const shared_ptr< Session >, const error_code ) > completion_handler )
+        {
+            if ( completion_handler == nullptr ) return;
+            
+            m_pimpl->adaptor->produce( data, [ this, completion_handler ]( auto, auto, auto status )
+            {
+                return completion_handler( shared_from_this( ), status );
+            } );
+        }
+        
+        void Session::fetch( const size_t length, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
+        {
+            if ( completion_handler == nullptr ) return;
+            
+            if ( m_pimpl->buffer.size( ) >= length )
+            {
+                auto iterator = begin( m_pimpl->buffer );
+                auto data = Bytes( iterator, iterator + length );
+                m_pimpl->buffer.erase( iterator, iterator + length );
+                completion_handler( shared_from_this( ), data, error_code( ) );
+                return;
+            }
+            
+            m_pimpl->adaptor->consume( [ this, length, completion_handler ]( auto, auto data, auto status )
+            {
+                m_pimpl->buffer.insert( end( m_pimpl->buffer ), begin( data ), end( data ) );
+                
+                if ( status )
+                    completion_handler( shared_from_this( ), data, status );
+                else
+                    fetch( length, completion_handler );
+                    
+                return status;
+            } );
+        }
+        
+        void Session::fetch( const string delimiter, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
+        {
+            fetch( make_bytes( delimiter ), completion_handler );
+        }
+        
+        void Session::fetch( const Bytes delimiter, const function< error_code ( const shared_ptr< Session >, const Bytes, const error_code ) > completion_handler )
+        {
+            if ( completion_handler == nullptr ) return;
+            
+            auto start = begin( m_pimpl->buffer );
+            auto position = search( start, end( m_pimpl->buffer ), begin( delimiter ), end( delimiter ) );
+            auto found = position not_eq end( m_pimpl->buffer );
+            if ( found )
+            {
+                auto data = Bytes( start, position );
+                m_pimpl->buffer.erase( start, position + delimiter.size( ) );
+                completion_handler( shared_from_this( ), data, error_code( ) );
+                return;
+            }
+            
+            m_pimpl->adaptor->consume( [ this, delimiter, completion_handler ]( auto, auto data, auto status )
+            {
+                m_pimpl->buffer.insert( end( m_pimpl->buffer ), begin( data ), end( data ) );
+                
+                if ( status )
+                    completion_handler( shared_from_this( ), data, status );
+                else
+                    fetch( delimiter, completion_handler );
+                    
+                return status;
+            } );
+        }
+        
+        void Session::observe( const shared_ptr< Request > request, const function< milliseconds ( const shared_ptr< const Response >, const error_code ) > event_handler, const function< error_code ( const shared_ptr< Session >, const shared_ptr< const Response >, const error_code ) > reaction_handler )
+        {
+            if ( event_handler == nullptr or reaction_handler == nullptr ) return;
+            
+            send( request, [ this, request, event_handler, reaction_handler ]( auto session, auto response, auto status )
+            {
+                auto next_probe_time = event_handler( response, status );
+                if ( next_probe_time == milliseconds::zero( ) )
+                    reaction_handler( session, response, status );
+                else
+                    m_pimpl->runloop->launch_in( next_probe_time, [ this, request, event_handler, reaction_handler ]( auto status )
+                {
+                    observe( request, event_handler, reaction_handler );
+                    return status;
+                }, "corvusoft::restless::observer" );
+                
+                return status;
+            } );
+        }
+        
+        multimap< string, string > Session::get_default_headers( void ) const
+        {
+            multimap< string, string > values = m_pimpl->default_headers;
+            
+            for ( const auto& header : m_pimpl->computed_headers )
+                values.emplace( header.first, header.second( ) );
+                
+            return values;
+        }
+        
+        void Session::set_default_header( const string& name, const string& value )
+        {
+            m_pimpl->default_headers.emplace( name, value );
+        }
+        
+        void Session::set_default_header( const string& name, const function< string ( void ) >& value )
+        {
+            if ( value == nullptr )
+                m_pimpl->default_headers.emplace( name, "" );
+            else
+                m_pimpl->computed_headers.emplace( name, value );
+        }
+        
+        void Session::set_default_headers( const multimap< string, string >& values )
+        {
+            m_pimpl->computed_headers.clear( );
+            m_pimpl->default_headers = values;
+        }
     }
 }

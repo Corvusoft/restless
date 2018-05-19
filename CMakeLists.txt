@@ -1,85 +1,82 @@
-# Copyright 2013-2016, Corvusoft Ltd, All Rights Reserved.
+cmake_minimum_required( VERSION 3.1.0 FATAL_ERROR )
 
-cmake_minimum_required( VERSION 2.8.10 )
-
-project( "restless" )
-set( restless_VERSION_MAJOR 0 )
-set( restless_VERSION_MINOR 0.0 )
-set( restless_VERSION ${restless_VERSION_MAJOR}.${restless_VERSION_MINOR} )
-set( PACKAGE_VERSION ${restless_VERSION} )
-set( VERSION "${restless_VERSION}" )
-
-#
-# Build Options
-#
-option( BUILD_SHARED   "Build shared library."              OFF )
-option( BUILD_EXAMPLES "Build examples applications."       OFF )
-option( BUILD_TESTS    "Build all available test suites."   OFF )
-option( BUILD_SSL      "Build secure socket layer support."  ON )
-
-#
-# Configuration
-#
-include( "${CMAKE_SOURCE_DIR}/cmake/configuration.cmake" )
-
-message( "   ${Blue}Copyright 2013-2016, Corvusoft Ltd, All Rights Reserved.${Reset}" )
+project( "restless" VERSION 2.0.0 LANGUAGES CXX )
+message( "Copyright 2013-2018, Corvusoft Ltd, All Rights Reserved." )
 
 #
 # Dependencies
 #
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules" )
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" )
 
-find_package( asio REQUIRED )
-find_package( restbed REQUIRED )
-include_directories( SYSTEM ${asio_INCLUDE} ${restbed_INCLUDE} )
+find_package( core     REQUIRED )
+find_package( catch    REQUIRED )
+find_package( runloop  REQUIRED )
+find_package( network  REQUIRED )
+find_package( protocol REQUIRED )
 
-if ( BUILD_SSL )
-    find_package( openssl REQUIRED )
-    include_directories( SYSTEM ${ssl_INCLUDE} )
+#
+# Configuration
+#
+set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_INSTALL_LIBDIR "library" )
+set( INCLUDE_DIR "${PROJECT_SOURCE_DIR}/source" )
+set( SOURCE_DIR  "${PROJECT_SOURCE_DIR}/source/corvusoft/${PROJECT_NAME}" )
+
+if ( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+    set( CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/distribution" CACHE PATH "Install path prefix" FORCE )
 endif ( )
+
+if( ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_WIN32_WINNT=0x0601 /W4 /wd4068 /wd4702" )
+endif ( )
+
+if( NOT WIN32 )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Weffc++ -pedantic -Wno-unknown-pragmas" )
+endif ( )
+
+if ( UNIX AND NOT APPLE )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread" )
+endif ( )
+
+if ( APPLE )
+    set( CMAKE_MACOSX_RPATH ON )
+endif ( )
+
+include_directories( ${INCLUDE_DIR} SYSTEM ${core_INCLUDE} ${runloop_INCLUDE} ${network_INCLUDE} ${protocol_INCLUDE} )
 
 #
 # Build
 #
-include( "${CMAKE_SOURCE_DIR}/cmake/manifest.cmake" )
+file( GLOB_RECURSE MANIFEST "${SOURCE_DIR}/*.cpp" )
 
-include_directories( ${INCLUDE_DIR} )
+set( STATIC_LIBRARY_NAME "${PROJECT_NAME}-static" )
+add_library( ${STATIC_LIBRARY_NAME} STATIC ${MANIFEST} )
+set_property( TARGET ${STATIC_LIBRARY_NAME} PROPERTY CXX_STANDARD 14 )
+set_property( TARGET ${STATIC_LIBRARY_NAME} PROPERTY CXX_EXTENSIONS OFF )
+set_property( TARGET ${STATIC_LIBRARY_NAME} PROPERTY CXX_STANDARD_REQUIRED ON )
+set_target_properties( ${STATIC_LIBRARY_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME} )
+target_link_libraries( ${STATIC_LIBRARY_NAME} ${core_SHARED_LIBRARY} ${runloop_SHARED_LIBRARY} ${network_SHARED_LIBRARY} ${protocol_SHARED_LIBRARY} )
 
-add_library( ${PROJECT_NAME} ${MANIFEST} $<TARGET_OBJECTS:restbed> )
+set( SHARED_LIBRARY_NAME "${PROJECT_NAME}-shared" )
+add_library( ${SHARED_LIBRARY_NAME} SHARED ${MANIFEST} )
+set_property( TARGET ${SHARED_LIBRARY_NAME} PROPERTY CXX_STANDARD 14 )
+set_property( TARGET ${STATIC_LIBRARY_NAME} PROPERTY CXX_EXTENSIONS OFF )
+set_property( TARGET ${SHARED_LIBRARY_NAME} PROPERTY CXX_STANDARD_REQUIRED ON )
+set_target_properties( ${SHARED_LIBRARY_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME} )
+set_target_properties( ${SHARED_LIBRARY_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR} )
+target_link_libraries( ${SHARED_LIBRARY_NAME} ${core_SHARED_LIBRARY} ${runloop_SHARED_LIBRARY} ${network_SHARED_LIBRARY} ${protocol_SHARED_LIBRARY} )
 
-if ( BUILD_SHARED )
-    set_target_properties( ${PROJECT_NAME} PROPERTIES SOVERSION ${restless_VERSION_MAJOR} VERSION ${restless_VERSION} )
-endif ( )
-
-if ( BUILD_SSL )
-    target_link_libraries( ${PROJECT_NAME} LINK_PRIVATE ${ssl_LIBRARY} ${crypto_LIBRARY} )
-else ( )
-    target_link_libraries( ${PROJECT_NAME} )
-endif ( )
-
-if ( BUILD_EXAMPLES )
-    add_subdirectory( "${CMAKE_SOURCE_DIR}/example" )
-endif ( )
-
-if ( BUILD_TESTS )
-    find_package( catch REQUIRED )
-
-    enable_testing( )
-    add_subdirectory( "${CMAKE_SOURCE_DIR}/test/unit" )
-    add_subdirectory( "${CMAKE_SOURCE_DIR}/test/acceptance" )
-    add_subdirectory( "${CMAKE_SOURCE_DIR}/test/regression" )
-    add_subdirectory( "${CMAKE_SOURCE_DIR}/test/integration" )
-endif ( )
+enable_testing( )
+add_subdirectory( "${PROJECT_SOURCE_DIR}/test/unit" )
+add_subdirectory( "${PROJECT_SOURCE_DIR}/test/feature" )
+add_subdirectory( "${PROJECT_SOURCE_DIR}/test/regression" )
+add_subdirectory( "${PROJECT_SOURCE_DIR}/test/integration" )
 
 #
 # Install
 #
-include( "${CMAKE_SOURCE_DIR}/cmake/artifacts.cmake" )
+file( GLOB ARTIFACTS "${SOURCE_DIR}/*.hpp" )
 
-if ( NOT DEFINED CMAKE_INSTALL_LIBDIR )
-    set( CMAKE_INSTALL_LIBDIR library )
-endif ( )
-
-install( FILES "${INCLUDE_DIR}/${PROJECT_NAME}" DESTINATION "${CMAKE_INSTALL_PREFIX}/include" )
 install( FILES ${ARTIFACTS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/corvusoft/${PROJECT_NAME}" )
-install( TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT library )
+install( TARGETS ${STATIC_LIBRARY_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT library )
+install( TARGETS ${SHARED_LIBRARY_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT library )

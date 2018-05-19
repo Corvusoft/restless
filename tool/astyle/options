@@ -6,13 +6,11 @@ indent-namespaces
 indent-labels
 indent-col1-comments
 max-instatement-indent=40
-break-blocks
 pad-oper
 pad-paren-in
 pad-header
 fill-empty-lines
 break-closing-brackets
-add-brackets
 convert-tabs
 align-pointer=type
 quiet

@@ -1,6 +1,10 @@
 # Project Files
-build/
+build/*
+!build/all.sh
 distribution/
+
+# IDE Files
+.vscode/
 
 # Compiled source
 *.com

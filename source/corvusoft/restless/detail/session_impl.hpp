@@ -1,34 +1,31 @@
 /*
- * Copyright 2013-2016, Corvusoft Ltd, All Rights Reserved.
+ * Copyright 2013-2018, Corvusoft Ltd, All Rights Reserved.
  */
 
-#ifndef _RESTLESS_DETAIL_SESSION_IMPL_H
-#define _RESTLESS_DETAIL_SESSION_IMPL_H 1
+#pragma once
 
 //System Includes
-#include <string>
-#include <chrono>
+#include <map>
 #include <memory>
-#include <cstddef>
+#include <string>
+#include <clocale>
+#include <cstdlib>
+#include <sstream>
+#include <iomanip>
+#include <algorithm>
+#include <stdexcept>
 #include <functional>
 #include <system_error>
 
 //Project Includes
-#include "corvusoft/restless/uri.hpp"
-#include "corvusoft/restless/byte.hpp"
-#include "corvusoft/restless/request.hpp"
-#include "corvusoft/restless/response.hpp"
 
 //External Includes
-#include <asio/ip/tcp.hpp>
-#include <asio/streambuf.hpp>
-#include <asio/steady_timer.hpp>
-#include <asio/io_service.hpp>
-#include <asio/io_service_strand.hpp>
-
-#ifdef BUILD_SSL
-    #include <asio/ssl.hpp>
-#endif
+#include <corvusoft/core/run_loop.hpp>
+#include <corvusoft/core/log_level.hpp>
+#include <corvusoft/network/adaptor.hpp>
+#include <corvusoft/network/uri_builder.hpp>
+#include <corvusoft/protocol/http_frame.hpp>
+#include <corvusoft/protocol/http_frame_builder.hpp>
 
 //System Namespaces
 
@@ -36,125 +33,148 @@
 
 //External Namespaces
 
-namespace restless
+namespace corvusoft
 {
     //Forward Declarations
-    class Session;
-    class Settings;
     
-    namespace detail
+    namespace restless
     {
         //Forward Declarations
+        class Session;
+        class Response;
+        class Settings;
         
-        class SessionImpl
+        namespace detail
         {
-            public:
-                //Friends
+            //Forward Declarations
+            
+            struct SessionImpl
+            {
+                core::Bytes buffer { };
                 
-                //Definitions
+                std::shared_ptr< Settings > settings = nullptr;
                 
-                //Constructors
-                SessionImpl( const Uri& uri, const std::shared_ptr< const Settings >& settings );
+                std::shared_ptr< core::RunLoop > runloop = nullptr;
                 
-                virtual ~SessionImpl( void );
+                std::shared_ptr< network::Adaptor > adaptor = nullptr;
                 
-                //Functionality
-                void close( void );
+                std::multimap< std::string, std::string > default_headers { };
                 
-                void socket_setup( void );
+                std::multimap< std::string, const std::function< std::string ( void ) > > computed_headers { };
                 
-                void timeout_setup( void );
+                void receive( const std::shared_ptr< Session > session, const std::function< std::error_code ( const std::shared_ptr< Session >, const std::shared_ptr< const Response >, const std::error_code ) > completion_handler )
+                {
+                    if ( completion_handler == nullptr ) return;
+                    
+                    auto builder = std::make_shared< protocol::HTTPFrameBuilder >( );
+                    adaptor->consume( [ this, session, completion_handler, builder ]( auto, auto data, auto status )
+                    {
+                        if ( status ) return completion_handler( session, nullptr, status );
+                        buffer.insert( std::end( buffer ), std::begin( data ), std::end( data ) );
+                        
+                        auto frame = builder->assemble( buffer );
+                        if ( not builder->is_finalised( ) )
+                            return std::make_error_code( std::errc::resource_unavailable_try_again );
+                            
+                        auto response = assemble( frame );
+                        if ( response == nullptr )
+                            return completion_handler( session, nullptr, std::make_error_code( std::errc::bad_message ) );
+                            
+                        auto body = response->get_body( );
+                        auto position = std::search( std::begin( buffer ), std::end( buffer ), std::begin( body ), std::end( body ) );
+                        if ( body.empty( ) or position == std::end( buffer ) )
+                            buffer.clear( );
+                        else
+                            buffer.erase( std::begin( buffer ), position + body.size( ) );
+                            
+                        return completion_handler( session, response, status );
+                    } );
+                }
                 
-                void timeout_teardown( void );
-#ifdef BUILD_SSL
-                void ssl_socket_setup( void );
-#endif
-                Bytes fetch( const std::size_t length, const std::function< void ( const Bytes, const std::error_code ) >& completion_handler );
+                const std::shared_ptr< const Response > assemble( std::shared_ptr< protocol::Frame > value )
+                {
+                    auto frame = std::dynamic_pointer_cast< protocol::HTTPFrame >( value );
+                    if ( frame == nullptr ) return nullptr;
+                    
+                    auto response = std::make_shared< Response >( );
+                    response->set_body( frame->get_body( ) );
+                    response->set_version( parse_version( frame->get_version( ) ) );
+                    response->set_protocol( core::make_string( frame->get_protocol( ) ) );
+                    response->set_status_code( parse_status_code( frame->get_status_code( ) ) );
+                    response->set_status_message( core::make_string( frame->get_status_message( ) ) );
+                    
+                    for ( auto header : frame->get_headers( ) )
+                        response->set_header( header.first, core::make_string( header.second ) );
+                        
+                    return response;
+                }
                 
-                Bytes fetch( const std::string& delimiter, const std::function< void ( const Bytes, const std::error_code ) >& completion_handler );
+                const core::Bytes disassemble( const std::shared_ptr< const Request > request )
+                {
+                    auto frame = std::make_shared< protocol::HTTPFrame >( );
+                    frame->set_path( compose_path( request ) );
+                    frame->set_method( request->get_method( ) );
+                    frame->set_protocol( request->get_protocol( ) );
+                    frame->set_version( compose_version( request->get_version( ) ) );
+                    
+                    for ( auto header : request->get_headers( ) )
+                        frame->set_header( header.first, header.second );
+                        
+                    frame->set_body( request->get_body( ) );
+                    
+                    auto builder = std::make_shared< protocol::HTTPFrameBuilder >( );
+                    return builder->disassemble( frame );
+                }
                 
-                std::shared_ptr< Response > parse( const Bytes& response );
+                double parse_version( const core::Bytes& value )
+                try
+                {
+                    return std::stod( core::make_string( value ) );
+                }
+                catch ( const std::invalid_argument )
+                {
+                    return 0;
+                }
+                catch ( const std::out_of_range )
+                {
+                    return 0;
+                }
                 
-                Bytes sync( const Bytes& data, const std::function< Bytes ( void ) >& upload_handler, std::error_code error );
+                int parse_status_code( const core::Bytes& value )
+                try
+                {
+                    return std::stoi( core::make_string( value ) );
+                }
+                catch ( const std::invalid_argument )
+                {
+                    return 0;
+                }
+                catch ( const std::out_of_range )
+                {
+                    return 0;
+                }
                 
-                void async( const Bytes& data, const std::function< Bytes ( void ) >& upload_handler, const std::function< void ( const std::shared_ptr< Session >, const std::shared_ptr< Request >, const std::shared_ptr< Response > ) >& response_handler );
+                std::string compose_path( const std::shared_ptr< const Request > request )
+                {
+                    auto builder = std::make_shared< network::URIBuilder >( );
+                    builder->set_path( request->get_path( ) );
+                    builder->set_parameters( request->get_query_parameters( ) );
+                    return builder->build( );
+                }
                 
-                std::error_code connect( const std::function< void ( const std::error_code& ) >& callback = nullptr );
-                
-                void connection_timeout_handler( const std::error_code& error );
-                
-                std::shared_ptr< Response > create_error_response( const std::string& message );
-                
-                std::shared_ptr< Response > create_error_response( const std::error_code& error );
-                
-                //Getters
-                
-                //Setters
-                
-                //Operators
-                
-                //Properties
-                bool m_is_open;
-                
-                std::shared_ptr< Uri > m_uri;
-                
-                std::chrono::milliseconds m_timeout;
-                
-                std::shared_ptr< asio::streambuf > m_buffer;
-                
-                std::shared_ptr< const Settings > m_settings;
-                
-                std::shared_ptr< asio::io_service > m_io_service;
-                
-                std::shared_ptr< asio::steady_timer > m_timer;
-                
-                std::shared_ptr< asio::io_service::strand > m_strand;
-                
-                std::shared_ptr< asio::ip::tcp::resolver > m_resolver;
-                
-                std::multimap< std::string, std::string > m_headers;
-                
-                std::shared_ptr< asio::ip::tcp::socket > m_socket;
-                
-                std::shared_ptr< asio::ssl::stream< asio::ip::tcp::socket > > m_ssl_socket;
-                
-            protected:
-                //Friends
-                
-                //Definitions
-                
-                //Constructors
-                
-                //Functionality
-                
-                //Getters
-                
-                //Setters
-                
-                //Operators
-                
-                //Properties
-                
-            private:
-                //Friends
-                
-                //Definitions
-                
-                //Constructors
-                SessionImpl( const SessionImpl& original ) = delete;
-                
-                //Functionality
-                
-                //Getters
-                
-                //Setters
-                
-                //Operators
-                SessionImpl& operator =( const SessionImpl& value ) = delete;
-                
-                //Properties
-        };
+                std::string compose_version( const double value  )
+                {
+                    auto locale = setlocale( LC_NUMERIC, nullptr );
+                    setlocale( LC_NUMERIC, "C" );
+                    
+                    std::ostringstream stream;
+                    stream << std::setprecision( 2 ) << value;
+                    auto version = stream.str( );
+                    
+                    setlocale( LC_NUMERIC, locale );
+                    return version;
+                }
+            };
+        }
     }
 }
-
-#endif  /* _RESTLESS_DETAIL_SESSION_IMPL_H */

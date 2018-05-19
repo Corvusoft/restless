@@ -3,62 +3,50 @@ Restless [![Build Status](https://travis-ci.org/Corvusoft/restless.svg?branch=ma
 
 ---
 
-Restless is a comprehensive and consistent programming model for building applications that require seamless and secure communication over HTTP, with the ability to model a range of business processes, designed to target mobile, tablet, desktop and embedded production environments.
-
-Features
---------
-
-| Feature                                                                                                                                                                                                       | Description                                                                                                                                                                                                                                                                                          |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Compliance                                                                                                                                                                                                    | Flexibility to address HTTP 1.0/1.1+ compliance.                                                                                                                                                                                                                                                     |
-| Mature                                                                                                                                                                                                        | Secure, Stable, and extensively tested since 2013.                                                                                                                                                                                                                                                   |
-| Community                                                                                                                                                                                                     | Active, vibrant and energetic open source community.                                                                                                                                                                                                                                                 |
-| Support                                                                                                                                                                                                       | Commercial support is available from [Corvusoft](http://www.corvusoft.co.uk).                                                                                                                                                                                                                        |
+Restless is a comprehensive and consistent programming model for building applications that require seamless and secure communication over HTTP, with the ability to model a range of business processes and production environments.
 
 Example
 -------
 
 ```C++
 #include <memory>
-#include <cstdlib>
-#include <restless>
+#include <system_error>
 
-using namespace std;
-using namespace restless;
+#include <corvusoft/restless/session.hpp>
+#include <corvusoft/restless/request.hpp>
+#include <corvusoft/restless/response.hpp>
 
-void response_handler( const shared_ptr< Session > session )
-{
-    auto response = session->get_response( );
-    auto length = response->get_header( "Content-Length", 0 );
+using std::shared_ptr;
+using std::error_code;
+using std::make_shared;
+
+using corvusoft::restless::Session;
+using corvusoft::restless::Request;
+using corvusoft::restless::Response;
+
+auto session = make_shared< Session >( );
+session->open( "www.corvusoft.co.uk", 80, [ ]( auto session, auto status )
+{    
+    auto request = make_shared< Request >( );
+    request->set_version( 1.1 );
+    request->set_path( "/" );
+    request->set_method( "GET" );
+    request->set_protocol( "HTTP" );
     
-    session->fetch( length, [ ]( const shared_ptr< Session > session )
+    session->send( request, [ ] ( auto session, auto response, auto status )
     {
-        print( session->get_response( ) );
+        //Process response...
+        return error_code( );
     } );
-}
-
-int main( const int, const char** )
-{
-    auto session = make_shared< Session >( );
     
-    auto request = make_shared< Request >( Uri( "https://www.corvusoft.co.uk/" ) );
-    request->set_header( "Accept", "*/*" );
-    request->set_header( "Host", "www.corvusoft.co.uk" );
-    request->set_query_parameter( "query", "search term" );
-    
-    session->send( request, response_handler );
-    session->wait( );
-    
-    return EXIT_SUCCESS;
-}
+    return error_code( );
+} );
 ```
-
-More in-depth examples can be found [here](https://github.com/corvusoft/restless/tree/master/example).
 
 License
 -------
 
-&copy; 2013-2016 Corvusoft Limited, United Kingdom. All rights reserved.
+&copy; 2013-2018 Corvusoft Limited, United Kingdom. All rights reserved.
 
 The Restless framework is dual licensed; See [LICENSE](LICENSE) for full details.
 
@@ -72,11 +60,7 @@ Build
 
 ```bash
 git clone --recursive https://github.com/corvusoft/restless.git
-mkdir restless/build
-cd restless/build
-cmake [-DBUILD_TESTS=YES] [-DBUILD_EXAMPLES=YES] [-DBUILD_SSL=NO] [-DBUILD_SHARED=YES] [-DCMAKE_INSTALL_PREFIX=/output-directory] ..
-make [-j CPU_CORES+1] install
-make test
+./restless/build/all.sh
 ```
 
 You will now find all required components installed in the distribution folder.
@@ -95,25 +79,7 @@ Minimum Requirements
 
 | Resource | Requirement                                     |
 |:--------:|:-----------------------------------------------:|
-| Compiler |            C++11 compliant or above             |
-|    OS    | BSD, Linux, Mac OSX, Solaris, Windows, Raspbian |
-
-Road Map
---------
-
-| Milestone                                                                            | Feature                                 | Status       |
-|:------------------------------------------------------------------------------------:|:---------------------------------------:|:------------:|
-|             [0.0](https://github.com/Corvusoft/restless/milestones/0.0)              |        (A)synchronous HTTP client       |  development |
-|             [1.0](https://github.com/Corvusoft/restless/milestones/1.0)              |           HTTP 1.0 Compliance           |  development |
-|             [1.0](https://github.com/Corvusoft/restless/milestones/1.0)              |           HTTP 1.1 Compliance           |  development |
-|             [1.0](https://github.com/Corvusoft/restless/milestones/1.0)              |           Secure Socket Layer           |  development |
-|             [1.0](https://github.com/Corvusoft/restless/milestones/4.5)              |            API Documentation            |  development |
-|             [1.5](https://github.com/Corvusoft/restless/milestones/4.5)              |        Chunked Transfer-Encoding        |    pending   |
-|             [1.5](https://github.com/Corvusoft/restless/milestones/4.5)              |               Web Sockets               |    pending   |
-|             [2.0](https://github.com/Corvusoft/restless/milestones/4.5)              |            Server-Side Events           |    pending   |
-|             [2.5](https://github.com/Corvusoft/restless/milestones/5.0)              |      Client-side SSL certificates       |    pending   |
-|             [3.0](https://github.com/Corvusoft/restless/milestones/5.0)              |            HTTP 2 compliance            |    pending   |
-|             [3.5](https://github.com/Corvusoft/restless/milestones/5.0)              |         Refactor, Reduce, Reuse         |    pending   |
+| Compiler |            C++14 compliant or above             |
 
 Contact
 -------
