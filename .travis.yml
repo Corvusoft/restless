@@ -7,31 +7,26 @@ language: cpp
 matrix:
   include:
     - os: linux
-      compiler: gcc
       addons:
         apt:
           sources:
-          - ubuntu-toolchain-r-test
+            - ubuntu-toolchain-r-test
           packages:
-          - g++-6
+            - g++-7
       env:
-      - COMPILERCXX="g++-6"
-      - COMPILERC="gcc-6"
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - os: linux
       compiler: clang
       addons:
         apt:
           sources:
           - ubuntu-toolchain-r-test
-          packages:
-          - g++-6"
     - os: osx
       compiler: gcc
     - os: osx
       compiler: clang
 before_script:
-  - if [ -n "$COMPILERC" ]; then export CC=$COMPILERC; fi
-  - if [ -n "$COMPILERCXX" ]; then export CXX=$COMPILERCXX; fi 
+  - eval "${MATRIX_EVAL}"
 
 script: ./build/all.sh
 
